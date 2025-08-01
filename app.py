@@ -140,14 +140,27 @@ if periods_data and periods_data.get('periods'):
 
             # Sayısal olmayan değerleri 0 yap
             df_leaderboard['totalCiro'] = pd.to_numeric(df_leaderboard['totalCiro'], errors='coerce').fillna(0)
+            df_leaderboard['successfulSalesCount'] = pd.to_numeric(df_leaderboard['successfulSalesCount'], errors='coerce').fillna(0)
             df_raw_sales['tutar'] = pd.to_numeric(df_raw_sales.get('tutar'), errors='coerce').fillna(0)
 
             # --- Üst Metrikler ---
             total_ciro = df_leaderboard['totalCiro'].sum()
-            
-            st.markdown('<div class="card">', unsafe_allow_html=True)
-            st.metric(label="Dönem Toplam Ciro", value=format_currency(total_ciro))
-            st.markdown('</div>', unsafe_allow_html=True)
+            total_sales_count = df_leaderboard['successfulSalesCount'].sum()
+            avg_sale_amount = total_ciro / total_sales_count if total_sales_count > 0 else 0
+
+            metric_col1, metric_col2, metric_col3 = st.columns(3)
+            with metric_col1:
+                st.markdown('<div class="card">', unsafe_allow_html=True)
+                st.metric(label="Dönem Toplam Ciro", value=format_currency(total_ciro))
+                st.markdown('</div>', unsafe_allow_html=True)
+            with metric_col2:
+                st.markdown('<div class="card">', unsafe_allow_html=True)
+                st.metric(label="Toplam Satış Adedi", value=f"{int(total_sales_count)}")
+                st.markdown('</div>', unsafe_allow_html=True)
+            with metric_col3:
+                st.markdown('<div class="card">', unsafe_allow_html=True)
+                st.metric(label="Ortalama Satış Tutarı", value=format_currency(avg_sale_amount))
+                st.markdown('</div>', unsafe_allow_html=True)
             
             st.markdown("---")
 
@@ -183,7 +196,19 @@ if periods_data and periods_data.get('periods'):
                     category_counts.columns = ['Kategori', 'Satış Adedi']
                     
                     if not category_counts.empty:
-                        st.dataframe(category_counts, use_container_width=True, hide_index=True)
+                        for index, row in category_counts.iterrows():
+                            category_name = row['Kategori']
+                            sales_count = row['Satış Adedi']
+                            with st.expander(f"{category_name} - {sales_count} Satış"):
+                                df_category = df_sold[df_sold['category'] == category_name]
+                                category_ciro = df_category['tutar'].sum()
+                                
+                                st.markdown(f"**Toplam Ciro:** {format_currency(category_ciro)}")
+
+                                if not df_category.empty:
+                                    top_branch = df_category['branch'].value_counts().idxmax()
+                                    st.markdown(f"**En Çok Satan Şube:** {top_branch}")
+
                     else:
                         st.info("Bu dönem için satılan kategori bulunamadı.")
                 else:
