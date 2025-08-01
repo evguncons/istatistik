@@ -132,8 +132,11 @@
 
     <div class="w-full max-w-7xl mx-auto">
         <header class="mb-8">
-            <h1 class="main-title text-4xl font-extrabold">Genel Bakış</h1>
-            <p id="currentPeriodDisplay" class="text-gray-500 mt-1">Lütfen bir dönem seçin</p>
+            <div class="flex items-center gap-4">
+                <img src="https://static.ticimax.cloud/32769/uploads/editoruploads/hedef-image/logo.png" alt="Hedef AVM Logo" class="h-10 sm:h-12 w-auto">
+                <h1 class="main-title text-2xl sm:text-3xl lg:text-4xl font-extrabold">Hedef AVM Online Satış İstatistik</h1>
+            </div>
+            <p id="currentPeriodDisplay" class="text-gray-500 mt-2">Lütfen bir dönem seçin</p>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -149,7 +152,7 @@
             <!-- Toplam Ciro Kartı -->
             <div class="card lg:col-span-2">
                 <h2 class="card-title mb-4">Dönem Toplam Ciro</h2>
-                <p id="totalCiroValue" class="text-5xl font-extrabold text-purple-700">0 TL</p>
+                <p id="totalCiroValue" class="text-4xl sm:text-5xl font-extrabold text-purple-700">0 TL</p>
             </div>
 
             <!-- Aylık Trend Kartı -->
@@ -160,10 +163,10 @@
             
             <div id="errorMessage" class="card lg:col-span-3 text-red-500 hidden"></div>
 
-            <!-- YENİ: Şubeler Ciro Karşılaştırması Kartı -->
+            <!-- Şubeler Ciro Karşılaştırması Kartı -->
             <div class="card lg:col-span-3">
                 <h2 class="card-title mb-4">Şubeler Ciro Karşılaştırması</h2>
-                <div class="relative h-96 w-full">
+                <div class="relative h-80 md:h-96 w-full">
                     <canvas id="branchCiroChart"></canvas>
                 </div>
             </div>
@@ -203,7 +206,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             // --- GLOBAL DEĞİŞKENLER ---
             let monthlyTrendChart;
-            let branchCiroChart; // YENİ: Şube karşılaştırma grafiği için değişken
+            let branchCiroChart;
             let allRawSalesDataGlobal = [];
             
             const GOOGLE_APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxSquBU2QkyB79SkPSPHPd7BKJfiJZB3su85LosK7YBcRe4vdrrAAczgp3LOuCC76Xp7A/exec';
@@ -227,7 +230,7 @@
                 errorMessage.classList.add('hidden');
                 errorMessage.textContent = '';
                 if (monthlyTrendChart) monthlyTrendChart.destroy();
-                if (branchCiroChart) branchCiroChart.destroy(); // YENİ: Eski grafiği temizle
+                if (branchCiroChart) branchCiroChart.destroy();
                 totalCiroValueElement.textContent = 'Hesaplanıyor...';
                 mostSoldCategoriesListElement.innerHTML = `<p class="text-gray-400">Yükleniyor...</p>`;
                 loadingOverlay.querySelector('p').textContent = message;
@@ -318,7 +321,7 @@
                     
                     allRawSalesDataGlobal = data.rawSales || [];
                     renderMostSoldCategoriesList(allRawSalesDataGlobal);
-                    renderBranchCiroChart(data.leaderboard || []); // YENİ: Şube grafiğini çiz
+                    renderBranchCiroChart(data.leaderboard || []);
 
                     hideLoadingState();
                 } catch (error) {
@@ -436,14 +439,12 @@
                 }
             }
             
-            // YENİ FONKSİYON: Şube ciro karşılaştırma grafiğini çizer
             function renderBranchCiroChart(leaderboardData) {
                 const ctx = document.getElementById('branchCiroChart').getContext('2d');
                 if (branchCiroChart) {
                     branchCiroChart.destroy();
                 }
 
-                // Veriyi ciroya göre büyükten küçüğe sırala
                 const sortedData = [...leaderboardData].sort((a, b) => b.totalCiro - a.totalCiro);
 
                 const labels = sortedData.map(item => item.branch);
@@ -463,7 +464,7 @@
                         }]
                     },
                     options: {
-                        indexAxis: 'y', // Grafiği yatay yapar
+                        indexAxis: 'y',
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
