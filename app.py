@@ -18,57 +18,6 @@ st.set_page_config(
 APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSquBU2QkyB79SkPSPHPd7BKJfiJZB3su85LosK7YBcRe4vdrrAAczgp3LOuCC76Xp7A/exec'
 
 # -----------------------------------------------------------------------------
-# Özel CSS ile Arayüzü Güzelleştirme
-# -----------------------------------------------------------------------------
-
-def load_css():
-    """Özel CSS stillerini yükler."""
-    st.markdown("""
-        <style>
-            /* Genel arayüz ve fontlar */
-            html, body, [class*="st-"] {
-                font-family: 'Inter', sans-serif;
-            }
-            /* Kart stilini taklit eden container */
-            .card {
-                background-color: #ffffff;
-                border-radius: 20px;
-                padding: 24px;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-                transition: all 0.3s ease;
-                height: 100%; /* Kartların aynı yükseklikte olmasını sağlar */
-            }
-            .card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
-            }
-            /* Metriklerin (sayısal göstergeler) stilini düzenleme */
-            [data-testid="stMetricValue"] {
-                font-size: 2.5rem;
-                font-weight: 800;
-                color: #6D28D9; /* Mor renk */
-            }
-            [data-testid="stMetricLabel"] {
-                font-size: 1rem;
-                font-weight: 600;
-                color: #4a5568;
-            }
-            /* Buton stilini düzenleme */
-            .stButton>button {
-                border-radius: 12px !important;
-                font-weight: 600 !important;
-                background-color: #6D28D9 !important;
-                color: white !important;
-                width: 100%;
-                padding: 12px 24px !important;
-            }
-            .stButton>button:hover {
-                background-color: #5B21B6 !important;
-            }
-        </style>
-    """, unsafe_allow_html=True)
-
-# -----------------------------------------------------------------------------
 # Veri Çekme ve İşleme Fonksiyonları
 # -----------------------------------------------------------------------------
 
@@ -101,8 +50,6 @@ def format_currency(value):
 # Ana Arayüz
 # -----------------------------------------------------------------------------
 
-load_css()
-
 # --- Başlık ---
 col1, col2 = st.columns([1, 10])
 with col1:
@@ -113,11 +60,24 @@ with col2:
 # --- Filtreler ---
 periods_data = fetch_data('getAvailablePeriods')
 if periods_data and periods_data.get('periods'):
-    # Ayları doğru sırala
     month_order = ['OCAK', 'ŞUBAT', 'MART', 'NİSAN', 'MAYIS', 'HAZİRAN', 'TEMMUZ', 'AĞUSTOS', 'EYLÜL', 'EKİM', 'KASIM', 'ARALIK']
+    
+    def get_period_sort_key(period_string):
+        """Dönem adlarını güvenli bir şekilde sıralamak için anahtar oluşturur."""
+        try:
+            parts = period_string.split(' ')
+            if len(parts) == 2:
+                month = parts[0].upper()
+                year = int(parts[1])
+                if month in month_order:
+                    return (year, month_order.index(month))
+        except (ValueError, IndexError):
+            pass
+        return (0, 0) # Sıralanamayanlar en sona gider
+
     periods = sorted(
         periods_data['periods'],
-        key=lambda x: (int(x.split(' ')[1]), month_order.index(x.split(' ')[0].upper())),
+        key=get_period_sort_key,
         reverse=True
     )
     
@@ -141,7 +101,11 @@ if periods_data and periods_data.get('periods'):
             # Sayısal olmayan değerleri 0 yap
             df_leaderboard['totalCiro'] = pd.to_numeric(df_leaderboard['totalCiro'], errors='coerce').fillna(0)
             df_leaderboard['successfulSalesCount'] = pd.to_numeric(df_leaderboard['successfulSalesCount'], errors='coerce').fillna(0)
-            df_raw_sales['tutar'] = pd.to_numeric(df_raw_sales.get('tutar'), errors='coerce').fillna(0)
+            
+            if 'tutar' in df_raw_sales.columns:
+                df_raw_sales['tutar'] = pd.to_numeric(df_raw_sales['tutar'], errors='coerce').fillna(0)
+            else:
+                df_raw_sales['tutar'] = 0
 
             # --- Üst Metrikler ---
             total_ciro = df_leaderboard['totalCiro'].sum()
@@ -149,18 +113,9 @@ if periods_data and periods_data.get('periods'):
             avg_sale_amount = total_ciro / total_sales_count if total_sales_count > 0 else 0
 
             metric_col1, metric_col2, metric_col3 = st.columns(3)
-            with metric_col1:
-                st.markdown('<div class="card">', unsafe_allow_html=True)
-                st.metric(label="Dönem Toplam Ciro", value=format_currency(total_ciro))
-                st.markdown('</div>', unsafe_allow_html=True)
-            with metric_col2:
-                st.markdown('<div class="card">', unsafe_allow_html=True)
-                st.metric(label="Toplam Satış Adedi", value=f"{int(total_sales_count)}")
-                st.markdown('</div>', unsafe_allow_html=True)
-            with metric_col3:
-                st.markdown('<div class="card">', unsafe_allow_html=True)
-                st.metric(label="Ortalama Satış Tutarı", value=format_currency(avg_sale_amount))
-                st.markdown('</div>', unsafe_allow_html=True)
+            metric_col1.metric(label="Dönem Toplam Ciro", value=format_currency(total_ciro))
+            metric_col2.metric(label="Toplam Satış Adedi", value=f"{int(total_sales_count)}")
+            metric_col3.metric(label="Ortalama Satış Tutarı", value=format_currency(avg_sale_amount))
             
             st.markdown("---")
 
@@ -168,7 +123,6 @@ if periods_data and periods_data.get('periods'):
             col1, col2 = st.columns(2)
 
             with col1:
-                st.markdown('<div class="card">', unsafe_allow_html=True)
                 st.subheader("Şubeler Ciro Karşılaştırması")
                 if not df_leaderboard.empty and df_leaderboard['totalCiro'].sum() > 0:
                     df_sorted = df_leaderboard.sort_values("totalCiro", ascending=True)
@@ -180,15 +134,13 @@ if periods_data and periods_data.get('periods'):
                         text_auto='.2s',
                         labels={"totalCiro": "Toplam Ciro (₺)", "branch": "Şube"}
                     )
-                    fig.update_traces(marker_color='#6D28D9', textposition='outside')
+                    fig.update_traces(textposition='outside')
                     fig.update_layout(yaxis_title=None, xaxis_title=None, showlegend=False)
                     st.plotly_chart(fig, use_container_width=True)
                 else:
                     st.info("Bu dönem için şube ciro verisi bulunamadı.")
-                st.markdown('</div>', unsafe_allow_html=True)
 
             with col2:
-                st.markdown('<div class="card">', unsafe_allow_html=True)
                 st.subheader("Bu Ay En Çok Satılan Kategoriler")
                 if not df_raw_sales.empty:
                     df_sold = df_raw_sales[df_raw_sales['result'].str.lower() == 'satışa döndü']
@@ -208,12 +160,10 @@ if periods_data and periods_data.get('periods'):
                                 if not df_category.empty:
                                     top_branch = df_category['branch'].value_counts().idxmax()
                                     st.markdown(f"**En Çok Satan Şube:** {top_branch}")
-
                     else:
                         st.info("Bu dönem için satılan kategori bulunamadı.")
                 else:
                     st.info("Kategori verisi mevcut değil.")
-                st.markdown('</div>', unsafe_allow_html=True)
 
             # --- Aylık Trend Butonu ve Grafiği ---
             st.markdown("---")
@@ -223,10 +173,7 @@ if periods_data and periods_data.get('periods'):
                     df_trend = pd.DataFrame(trend_data)
                     df_trend['totalCiro'] = pd.to_numeric(df_trend['totalCiro'], errors='coerce').fillna(0)
                     
-                    # Ayları doğru sırala
-                    df_trend['sort_key'] = df_trend['period'].apply(
-                        lambda x: (int(x.split(' ')[1]), month_order.index(x.split(' ')[0].upper()))
-                    )
+                    df_trend['sort_key'] = df_trend['period'].apply(get_period_sort_key)
                     df_trend = df_trend.sort_values('sort_key').reset_index(drop=True)
 
                     st.subheader("Aylık Ciro Trendi")
@@ -237,7 +184,6 @@ if periods_data and periods_data.get('periods'):
                         markers=True,
                         labels={"period": "Dönem", "totalCiro": "Toplam Ciro (₺)"}
                     )
-                    fig_trend.update_traces(line_color='#6D28D9')
                     st.plotly_chart(fig_trend, use_container_width=True)
         else:
             st.warning("Seçilen dönem için veri bulunamadı veya yüklenemedi.")
