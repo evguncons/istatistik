@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HedefAVM Satış Paneli</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts (Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7fe;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+        }
+        .main-title {
+            color: #1a202c;
+        }
+        .card-title {
+            color: #4a5568;
+            font-weight: 600;
+        }
+        .primary-button {
+            background-color: #6D28D9; /* Deep Purple */
+            color: white;
+            font-weight: 600;
+            border-radius: 12px;
+            padding: 12px 24px;
+            transition: background-color 0.3s ease;
+        }
+        .primary-button:hover {
+            background-color: #5B21B6;
+        }
+        .period-select {
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            background-color: #fff;
+        }
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: #ffffff;
+            color: #1a202c;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .close-button {
+            color: #718096;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .close-button:hover {
+            color: #1a202c;
+        }
+        /* Yükleniyor Ekranı */
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(244, 247, 254, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .spinner {
+            border: 5px solid rgba(0, 0, 0, 0.1);
+            border-top: 5px solid #6D28D9;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <p class="text-gray-600 font-semibold">Veriler Yükleniyor...</p>
+    </div>
+
+    <div class="w-full max-w-7xl mx-auto">
+        <header class="mb-8">
+            <h1 class="main-title text-4xl font-extrabold">Genel Bakış</h1>
+            <p id="currentPeriodDisplay" class="text-gray-500 mt-1">Lütfen bir dönem seçin</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Filtreler Kartı -->
+            <div class="card lg:col-span-3 flex flex-col md:flex-row items-center justify-between gap-4">
+                <p class="card-title text-lg">Dönem Seçimi</p>
+                <div class="flex items-center gap-4 w-full md:w-auto">
+                    <select id="periodSelect" class="period-select w-full md:w-auto"></select>
+                    <button id="applyFilter" class="primary-button">Getir</button>
+                </div>
+            </div>
+
+            <!-- Toplam Ciro Kartı -->
+            <div class="card lg:col-span-2">
+                <h2 class="card-title mb-4">Dönem Toplam Ciro</h2>
+                <p id="totalCiroValue" class="text-5xl font-extrabold text-purple-700">0 TL</p>
+            </div>
+
+            <!-- Aylık Trend Kartı -->
+            <div class="card flex flex-col justify-center items-center text-center">
+                 <h2 class="card-title mb-4">Satış Performansı</h2>
+                 <button id="showMonthlyTrend" class="primary-button w-full">Aylık Trendi Görüntüle</button>
+            </div>
+            
+            <div id="errorMessage" class="card lg:col-span-3 text-red-500 hidden"></div>
+
+            <!-- YENİ: Şubeler Ciro Karşılaştırması Kartı -->
+            <div class="card lg:col-span-3">
+                <h2 class="card-title mb-4">Şubeler Ciro Karşılaştırması</h2>
+                <div class="relative h-96 w-full">
+                    <canvas id="branchCiroChart"></canvas>
+                </div>
+            </div>
+
+            <!-- En Çok Satılan Kategoriler Kartı -->
+            <div class="card lg:col-span-3">
+                <h2 class="card-title mb-4">Bu Ay En Çok Satılan Kategoriler</h2>
+                <div id="mostSoldCategoriesList" class="space-y-3">
+                    <p class="text-gray-400">Veri Yükleniyor...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kategori Detay Modal'ı -->
+    <div id="categoryDetailModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeCategoryModal">&times;</span>
+            <h2 id="modalCategoryName" class="text-3xl font-bold mb-6"></h2>
+            <div id="modalCategoryDetails" class="space-y-3"></div>
+        </div>
+    </div>
+
+    <!-- Aylık Ciro Trendi Modal'ı -->
+    <div id="monthlyTrendModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeMonthlyTrendModal">&times;</span>
+            <h2 class="text-3xl font-bold mb-2">Aylık Ciro Trendi</h2>
+            <p id="monthlyGrowthDetail" class="text-gray-500 mb-6"></p>
+            <div class="relative h-96 w-full">
+                <canvas id="monthlyTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- GLOBAL DEĞİŞKENLER ---
+            let monthlyTrendChart;
+            let branchCiroChart; // YENİ: Şube karşılaştırma grafiği için değişken
+            let allRawSalesDataGlobal = [];
+            
+            const GOOGLE_APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxSquBU2QkyB79SkPSPHPd7BKJfiJZB3su85LosK7YBcRe4vdrrAAczgp3LOuCC76Xp7A/exec';
+
+            // --- DOM ELEMENT REFERANSLARI ---
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const currentPeriodDisplay = document.getElementById('currentPeriodDisplay');
+            const errorMessage = document.getElementById('errorMessage');
+            const periodSelect = document.getElementById('periodSelect');
+            const totalCiroValueElement = document.getElementById('totalCiroValue');
+            const mostSoldCategoriesListElement = document.getElementById('mostSoldCategoriesList');
+            const categoryDetailModal = document.getElementById('categoryDetailModal');
+            const monthlyTrendModal = document.getElementById('monthlyTrendModal');
+            const modalCategoryName = document.getElementById('modalCategoryName');
+            const modalCategoryDetails = document.getElementById('modalCategoryDetails');
+            const monthlyGrowthDetailElement = document.getElementById('monthlyGrowthDetail');
+
+            // --- TEMEL FONKSİYONLAR ---
+
+            const setLoadingState = (message = "Veriler Yükleniyor...") => {
+                errorMessage.classList.add('hidden');
+                errorMessage.textContent = '';
+                if (monthlyTrendChart) monthlyTrendChart.destroy();
+                if (branchCiroChart) branchCiroChart.destroy(); // YENİ: Eski grafiği temizle
+                totalCiroValueElement.textContent = 'Hesaplanıyor...';
+                mostSoldCategoriesListElement.innerHTML = `<p class="text-gray-400">Yükleniyor...</p>`;
+                loadingOverlay.querySelector('p').textContent = message;
+                loadingOverlay.style.display = 'flex';
+            };
+
+            const hideLoadingState = () => {
+                loadingOverlay.style.display = 'none';
+            };
+            
+            const formatValue = (value, criteria) => {
+                value = value === undefined || value === null ? 0 : value;
+                switch (criteria) {
+                    case 'totalCiro': return value.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+                    default: return `${value} Adet`;
+                }
+            };
+
+            const parseCiroClient = (value) => {
+                if (value === null || value === undefined) return 0;
+                if (typeof value === 'number') return value;
+                
+                let cleaned = String(value).replace(/[^0-9,.]/g, "");
+                
+                if (cleaned.includes('.') && cleaned.includes(',')) {
+                    cleaned = cleaned.replace(/\./g, '');
+                }
+                cleaned = cleaned.replace(',', '.');
+                
+                const number = parseFloat(cleaned);
+                return isNaN(number) ? 0 : number;
+            };
+
+            async function fetchAvailablePeriods() {
+                try {
+                    const response = await fetch(`${GOOGLE_APPS_SCRIPT_WEB_APP_URL}?action=getAvailablePeriods&t=${new Date().getTime()}`);
+                    if (!response.ok) throw new Error(`Sunucu hatası: ${response.status}`);
+                    const data = await response.json();
+                    if (data.error) throw new Error(data.error);
+
+                    const periods = data.periods || [];
+                    const currentSelected = periodSelect.value;
+                    periodSelect.innerHTML = '';
+                    
+                    const monthOrder = ['OCAK', 'ŞUBAT', 'MART', 'NİSAN', 'MAYIS', 'HAZİRAN', 'TEMMUZ', 'AĞUSTOS', 'EYLÜL', 'EKİM', 'KASIM', 'ARALIK'];
+                    periods.sort((a, b) => {
+                        const [monthA, yearA] = a.split(' ');
+                        const [monthB, yearB] = b.split(' ');
+                        if (parseInt(yearA) !== parseInt(yearB)) return parseInt(yearB) - parseInt(yearA);
+                        return monthOrder.indexOf(monthB.toUpperCase()) - monthOrder.indexOf(monthA.toUpperCase());
+                    }).forEach(period => periodSelect.add(new Option(period, period)));
+                    
+                    if ([...periodSelect.options].some(opt => opt.value === currentSelected)) {
+                        periodSelect.value = currentSelected;
+                    }
+                    
+                    return periodSelect.value;
+
+                } catch (error) {
+                    console.error(`Dönemler yüklenemedi: ${error.message}`);
+                    errorMessage.textContent = `Dönemler yüklenirken bir hata oluştu: ${error.message}. Lütfen Apps Script URL'nizin doğru olduğundan ve dağıtım ayarlarının 'Herkes' için yapıldığından emin olun.`;
+                    errorMessage.classList.remove('hidden');
+                    return null;
+                }
+            }
+            
+            async function fetchData(selectedPeriod, isSilentRefresh = false) {
+                if (!selectedPeriod) {
+                    errorMessage.textContent = "Lütfen bir dönem seçin.";
+                    errorMessage.classList.remove('hidden');
+                    hideLoadingState();
+                    return;
+                }
+                if (!isSilentRefresh) {
+                   setLoadingState(`'${selectedPeriod}' verileri yükleniyor...`);
+                }
+                currentPeriodDisplay.textContent = `${selectedPeriod} Dönemi Analizi`;
+
+                try {
+                    const url = `${GOOGLE_APPS_SCRIPT_WEB_APP_URL}?action=getLeaderboard&sheetName=${encodeURIComponent(selectedPeriod)}&t=${new Date().getTime()}`;
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`Sunucu hatası: ${response.status}`);
+                    const data = await response.json();
+                    if(data.error) throw new Error(data.error);
+
+                    const totalCiro = (data.leaderboard || []).reduce((sum, item) => sum + parseCiroClient(item.totalCiro), 0);
+                    totalCiroValueElement.textContent = formatValue(totalCiro, 'totalCiro');
+                    
+                    allRawSalesDataGlobal = data.rawSales || [];
+                    renderMostSoldCategoriesList(allRawSalesDataGlobal);
+                    renderBranchCiroChart(data.leaderboard || []); // YENİ: Şube grafiğini çiz
+
+                    hideLoadingState();
+                } catch (error) {
+                    errorMessage.textContent = `Veriler yüklenemedi: ${error.message}. Sayfa adının ve E-Tablo başlıklarının doğru olduğundan emin olun.`;
+                    errorMessage.classList.remove('hidden');
+                    hideLoadingState();
+                }
+            }
+
+            async function fetchAllMonthlyData() {
+                monthlyTrendModal.style.display = 'flex';
+                monthlyGrowthDetailElement.innerHTML = `<span class="text-gray-400">Aylık trend verileri yükleniyor...</span>`;
+                
+                try {
+                    const url = `${GOOGLE_APPS_SCRIPT_WEB_APP_URL}?action=getMonthlyTrendData&t=${new Date().getTime()}`;
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`Sunucu hatası: ${response.status}`);
+                    const data = await response.json();
+                    if (data.error) throw new Error(data.error);
+
+                    const monthOrder = ['OCAK', 'ŞUBAT', 'MART', 'NİSAN', 'MAYIS', 'HAZİRAN', 'TEMMUZ', 'AĞUSTOS', 'EYLÜL', 'EKİM', 'KASIM', 'ARALIK'];
+                    data.sort((a,b) => {
+                        const [monthA, yearA] = a.period.split(' ');
+                        const [monthB, yearB] = b.period.split(' ');
+                        if (parseInt(yearA) !== parseInt(yearB)) return parseInt(yearA) - parseInt(yearB);
+                        return monthOrder.indexOf(monthA.toUpperCase()) - monthOrder.indexOf(monthB.toUpperCase());
+                    });
+                    renderMonthlyTrendChart(data);
+                } catch (error) {
+                     monthlyGrowthDetailElement.innerHTML = `<span class="text-red-500">Trend verileri yüklenemedi: ${error.message}</span>`;
+                }
+            }
+            
+            function renderMonthlyTrendChart(data) {
+                const ctx = document.getElementById('monthlyTrendChart').getContext('2d');
+                if (monthlyTrendChart) monthlyTrendChart.destroy();
+
+                const labels = data.map(item => item.period);
+                const ciroData = data.map(item => item.totalCiro);
+
+                monthlyTrendChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Toplam Ciro',
+                            data: ciroData,
+                            backgroundColor: 'rgba(109, 40, 217, 0.1)',
+                            borderColor: '#6D28D9',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#6D28D9',
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            pointHoverBorderWidth: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: (context) => {
+                                        const currentIndex = context.dataIndex;
+                                        const currentCiro = context.parsed.y;
+                                        let tooltipText = [`Ciro: ${formatValue(currentCiro, 'totalCiro')}`];
+
+                                        if (currentIndex > 0) {
+                                            const prevCiro = data[currentIndex - 1].totalCiro;
+                                            if (prevCiro > 0) {
+                                                const growthRate = ((currentCiro - prevCiro) / prevCiro) * 100;
+                                                const growthSign = growthRate >= 0 ? '▲' : '▼';
+                                                tooltipText.push(`${growthSign} ${Math.abs(growthRate).toFixed(2)}% Önceki Aya Göre`);
+                                            }
+                                        }
+                                        return tooltipText;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { ticks: { color: '#4a5568' }, grid: { color: '#e2e8f0' } },
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: '#4a5568', callback: (value) => (value/1000) + 'k ₺' },
+                                grid: { color: '#e2e8f0' }
+                            }
+                        }
+                    }
+                });
+
+                if (data.length > 0) {
+                    const lastMonthIndex = data.length - 1;
+                    const lastMonthData = data[lastMonthIndex];
+                    let detailText = `${lastMonthData.period}: ${formatValue(lastMonthData.totalCiro, 'totalCiro')}`;
+                    
+                    if (lastMonthIndex > 0) {
+                        const prevCiro = data[lastMonthIndex - 1].totalCiro;
+                        if (prevCiro > 0) {
+                            const growthRate = ((lastMonthData.totalCiro - prevCiro) / prevCiro) * 100;
+                            const growthSign = growthRate >= 0 ? '▲' : '▼';
+                            const growthColor = growthRate >= 0 ? 'text-green-500' : 'text-red-500';
+                            detailText += ` <span class="${growthColor}">(${growthSign} ${Math.abs(growthRate).toFixed(2)}%)</span>`;
+                        }
+                    }
+                    monthlyGrowthDetailElement.innerHTML = detailText;
+                } else {
+                    monthlyGrowthDetailElement.innerHTML = `<span class="text-gray-400">Veri Yok</span>`;
+                }
+            }
+            
+            // YENİ FONKSİYON: Şube ciro karşılaştırma grafiğini çizer
+            function renderBranchCiroChart(leaderboardData) {
+                const ctx = document.getElementById('branchCiroChart').getContext('2d');
+                if (branchCiroChart) {
+                    branchCiroChart.destroy();
+                }
+
+                // Veriyi ciroya göre büyükten küçüğe sırala
+                const sortedData = [...leaderboardData].sort((a, b) => b.totalCiro - a.totalCiro);
+
+                const labels = sortedData.map(item => item.branch);
+                const ciroData = sortedData.map(item => item.totalCiro);
+
+                branchCiroChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Toplam Ciro',
+                            data: ciroData,
+                            backgroundColor: 'rgba(109, 40, 217, 0.8)',
+                            borderColor: '#6D28D9',
+                            borderWidth: 1,
+                            borderRadius: 8,
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y', // Grafiği yatay yapar
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => `Ciro: ${formatValue(context.parsed.x, 'totalCiro')}`
+                                }
+                            }
+                        },
+                        scales: {
+                             x: {
+                                beginAtZero: true,
+                                ticks: { color: '#4a5568', callback: (value) => (value/1000) + 'k ₺' },
+                                grid: { color: '#e2e8f0' }
+                            },
+                            y: {
+                                ticks: { color: '#4a5568' },
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function renderMostSoldCategoriesList(rawSalesData) {
+                const categorySalesDetails = {};
+                rawSalesData.forEach(sale => {
+                    const categoryName = String(sale.category || '').trim();
+                    const result = String(sale.result || '').trim();
+                    
+                    if (result === 'Satışa Döndü' && categoryName.length > 0) {
+                        if (!categorySalesDetails[categoryName]) {
+                            categorySalesDetails[categoryName] = { count: 0 };
+                        }
+                        categorySalesDetails[categoryName].count++;
+                    }
+                });
+
+                const sortedCategories = Object.entries(categorySalesDetails)
+                    .map(([category, details]) => ({ category, ...details }))
+                    .sort((a, b) => b.count - a.count);
+
+                let listHtml = '';
+                if (sortedCategories.length > 0) {
+                    sortedCategories.forEach(item => {
+                        listHtml += `<div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer" onclick="showCategoryDetails('${item.category.replace(/'/g, "\\'")}')">
+                                        <span class="font-semibold text-gray-700">${item.category}</span>
+                                        <span class="text-sm font-bold text-purple-600 bg-purple-100 px-2 py-1 rounded-md">${item.count} Satış</span>
+                                     </div>`;
+                    });
+                } else {
+                    listHtml = `<p class="text-gray-400">Bu dönem için satışa dönen kategori verisi bulunamadı.</p>`;
+                }
+                
+                mostSoldCategoriesListElement.innerHTML = listHtml;
+            }
+
+            window.showCategoryDetails = (categoryName) => {
+                const categorySales = allRawSalesDataGlobal.filter(sale => sale.result === 'Satışa Döndü' && sale.category === categoryName);
+                
+                const totalSalesCount = categorySales.length;
+                const totalCategoryCiro = categorySales.reduce((sum, sale) => sum + parseCiroClient(sale.tutar), 0);
+
+                const branchSales = categorySales.reduce((acc, sale) => {
+                    const branchName = sale.branch || 'Bilinmeyen';
+                    acc[branchName] = (acc[branchName] || 0) + 1;
+                    return acc;
+                }, {});
+
+                const mostSellingBranch = Object.entries(branchSales).sort((a,b) => b[1] - a[1])[0] || ['Veri Yok', 0];
+
+                modalCategoryName.textContent = categoryName;
+                modalCategoryDetails.innerHTML = `
+                    <p class="text-lg"><strong class="font-semibold text-gray-600">Toplam Satış Adedi:</strong> <span class="font-bold text-purple-600">${formatValue(totalSalesCount)}</span></p>
+                    <p class="text-lg"><strong class="font-semibold text-gray-600">Toplam Ciro:</strong> <span class="font-bold text-purple-600">${formatValue(totalCategoryCiro, 'totalCiro')}</span></p>
+                    <p class="text-lg"><strong class="font-semibold text-gray-600">En Çok Satan Şube:</strong> <span class="font-bold text-purple-600">${mostSellingBranch[0]} (${formatValue(mostSellingBranch[1])})</span></p>
+                `;
+                categoryDetailModal.style.display = 'flex';
+            };
+
+            // --- OLAY DİNLEYİCİLERİ VE BAŞLATMA ---
+
+            document.getElementById('applyFilter').onclick = () => {
+                const selectedPeriod = periodSelect.value;
+                if(selectedPeriod) {
+                    fetchData(selectedPeriod);
+                }
+            };
+
+            document.getElementById('showMonthlyTrend').onclick = () => {
+                fetchAllMonthlyData();
+            };
+
+            document.getElementById('closeCategoryModal').onclick = () => categoryDetailModal.style.display = 'none';
+            document.getElementById('closeMonthlyTrendModal').onclick = () => monthlyTrendModal.style.display = 'none';
+
+            window.onclick = (event) => {
+                if (event.target == categoryDetailModal) categoryDetailModal.style.display = 'none';
+                if (event.target == monthlyTrendModal) monthlyTrendModal.style.display = 'none';
+            };
+
+            const initialize = async () => {
+                setLoadingState("Dönemler yükleniyor...");
+                const initialPeriod = await fetchAvailablePeriods();
+                if (initialPeriod) {
+                    await fetchData(initialPeriod);
+                } else {
+                    errorMessage.textContent = "Hiçbir E-Tablodan veri okunacak dönem (sayfa) bulunamadı. Lütfen E-Tablolarınızı kontrol edin.";
+                    errorMessage.classList.remove('hidden');
+                    hideLoadingState();
+                }
+            };
+            
+            initialize();
+        });
+    </script>
+</body>
+</html>
