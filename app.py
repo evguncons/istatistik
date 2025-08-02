@@ -38,9 +38,12 @@ def fetch_data(action, params=None):
             st.warning(f"API'den '{action}' eylemi için boş veri alındı. İlgili E-Tablo sayfasının varlığını kontrol edin.")
             return None
             
-        if data.get('error'):
+        # DÜZELTME: Sadece sözlük (dictionary) ise 'error' anahtarını kontrol et.
+        # Liste (list) ise, bu bir hatasız veri yanıtıdır (örneğin aylık trend).
+        if isinstance(data, dict) and data.get('error'):
             st.error(f"API Hatası: {data['error']}")
             return None
+            
         return data
     except requests.exceptions.RequestException as e:
         st.error(f"Veri çekme hatası: {e}")
@@ -83,17 +86,15 @@ if periods_data and periods_data.get('periods'):
 
     periods = sorted(periods_data['periods'], key=get_period_sort_key, reverse=True)
     
-    with st.container(border=True):
-        filter_col1, filter_col2, filter_col3 = st.columns([2,2,1])
-        with filter_col1:
-            st.subheader("Dönem Seçimi")
-        with filter_col2:
-            selected_period = st.selectbox("Dönem", periods, label_visibility="collapsed")
-        with filter_col3:
-            getir_button = st.button("Getir")
+    selected_period = st.selectbox(
+        "**Dönem Seçimi**",
+        periods,
+        label_visibility="collapsed"
+    )
     
-    st.markdown(f"### **{selected_period}** Dönemi Analizi")
-    
+    st.markdown(f"**{selected_period}** Dönemi Analizi")
+    st.markdown("---")
+
     # --- Veri Yükleme ve Gösterge Paneli ---
     if selected_period:
         data = fetch_data('getLeaderboard', {'sheetName': selected_period})
@@ -115,33 +116,35 @@ if periods_data and periods_data.get('periods'):
             total_sales_count = df_leaderboard['successfulSalesCount'].sum()
             avg_sale_amount = total_ciro / total_sales_count if total_sales_count > 0 else 0
 
-            metric_col1, metric_col2 = st.columns(2)
-            with metric_col1:
-                with st.container(border=True):
-                    st.metric(label="Dönem Toplam Ciro", value=format_currency(total_ciro))
-            with metric_col2:
-                 with st.container(border=True):
-                     st.subheader("Satış Performansı")
-                     if st.button("Aylık Trendi Görüntüle", key="trend_button_main"):
-                         st.session_state.show_trend = not st.session_state.get('show_trend', False)
+            metric_col1, metric_col2, metric_col3 = st.columns(3)
+            metric_col1.metric(label="Dönem Toplam Ciro", value=format_currency(total_ciro))
+            metric_col2.metric(label="Toplam Satış Adedi", value=f"{int(total_sales_count)}")
+            metric_col3.metric(label="Ortalama Satış Tutarı", value=format_currency(avg_sale_amount))
             
-            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("---")
 
             # --- Şube ve Kategori Analizi ---
-            with st.container(border=True):
+            col1, col2 = st.columns(2)
+
+            with col1:
                 st.subheader("Şubeler Ciro Karşılaştırması")
                 if not df_leaderboard.empty and df_leaderboard['totalCiro'].sum() > 0:
                     df_sorted = df_leaderboard.sort_values("totalCiro", ascending=True)
-                    fig = px.bar(df_sorted, x="totalCiro", y="branch", orientation='h', text_auto='.2s', labels={"totalCiro": "Toplam Ciro (₺)", "branch": "Şube"})
+                    fig = px.bar(
+                        df_sorted,
+                        x="totalCiro",
+                        y="branch",
+                        orientation='h',
+                        text_auto='.2s',
+                        labels={"totalCiro": "Toplam Ciro (₺)", "branch": "Şube"}
+                    )
                     fig.update_traces(textposition='outside')
                     fig.update_layout(yaxis_title=None, xaxis_title=None, showlegend=False)
                     st.plotly_chart(fig, use_container_width=True)
                 else:
                     st.info("Bu dönem için şube ciro verisi bulunamadı.")
-            
-            st.markdown("<br>", unsafe_allow_html=True)
 
-            with st.container(border=True):
+            with col2:
                 st.subheader("Bu Ay En Çok Satılan Kategoriler")
                 if not df_raw_sales.empty:
                     df_sold = df_raw_sales[df_raw_sales['result'].str.lower() == 'satışa döndü']
@@ -155,7 +158,9 @@ if periods_data and periods_data.get('periods'):
                             with st.expander(f"{category_name} - {sales_count} Satış"):
                                 df_category = df_sold[df_sold['category'] == category_name]
                                 category_ciro = df_category['tutar'].sum()
+                                
                                 st.markdown(f"**Toplam Ciro:** {format_currency(category_ciro)}")
+
                                 if not df_category.empty:
                                     top_branch = df_category['branch'].value_counts().idxmax()
                                     st.markdown(f"**En Çok Satan Şube:** {top_branch}")
@@ -164,21 +169,30 @@ if periods_data and periods_data.get('periods'):
                 else:
                     st.info("Kategori verisi mevcut değil.")
 
-            # --- Aylık Trend Grafiği ---
-            if st.session_state.get('show_trend', False):
+            # --- Aylık Trend Butonu ve Grafiği ---
+            st.markdown("---")
+            if st.button("Aylık Trendi Görüntüle"):
                 trend_data = fetch_data('getMonthlyTrendData')
-                if trend_data:
-                    df_trend = pd.DataFrame(trend_data)
-                    df_trend['totalCiro'] = pd.to_numeric(df_trend['totalCiro'], errors='coerce').fillna(0)
-                    df_trend['sort_key'] = df_trend['period'].apply(get_period_sort_key)
-                    df_trend = df_trend.sort_values('sort_key').reset_index(drop=True)
-                    
-                    with st.container(border=True):
+                if trend_data is not None: # DÜZELTME: None kontrolü
+                    if len(trend_data) > 0:
+                        df_trend = pd.DataFrame(trend_data)
+                        df_trend['totalCiro'] = pd.to_numeric(df_trend['totalCiro'], errors='coerce').fillna(0)
+                        
+                        df_trend['sort_key'] = df_trend['period'].apply(get_period_sort_key)
+                        df_trend = df_trend.sort_values('sort_key').reset_index(drop=True)
+
                         st.subheader("Aylık Ciro Trendi")
-                        fig_trend = px.line(df_trend, x='period', y='totalCiro', markers=True, labels={"period": "Dönem", "totalCiro": "Toplam Ciro (₺)"})
+                        fig_trend = px.line(
+                            df_trend,
+                            x='period',
+                            y='totalCiro',
+                            markers=True,
+                            labels={"period": "Dönem", "totalCiro": "Toplam Ciro (₺)"}
+                        )
                         st.plotly_chart(fig_trend, use_container_width=True)
-                else:
-                    st.warning("Aylık trend verisi alınamadı.")
+                    else:
+                        st.warning("Aylık trend için veri bulunamadı.")
+                # Boş veri durumunda zaten fetch_data içinde uyarı veriliyor.
         else:
             st.warning("Seçilen dönem için veri bulunamadı veya yüklenemedi.")
 else:
