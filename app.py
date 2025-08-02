@@ -31,7 +31,6 @@ def load_css():
             /* Genel arayüz ve fontlar */
             html, body, [class*="st-"] {
                 font-family: 'Inter', sans-serif;
-                color: #1a202c; /* DÜZELTME: Varsayılan metin rengini siyah yap */
             }
             /* Streamlit'in ana arkaplanını ve padding'ini ayarla */
             .main .block-container {
@@ -55,9 +54,13 @@ def load_css():
                 color: #4a5568 !important;
             }
             /* Başlık stilleri */
-            h1, h2, h3 {
-                color: #1a202c !important;
+            h1 {
                 font-weight: 800;
+                color: #1a202c;
+            }
+            h2, h3 {
+                color: #1a202c;
+                font-weight: 700;
             }
             /* Buton stilini düzenleme */
             .stButton>button {
@@ -72,10 +75,6 @@ def load_css():
             .stButton>button:hover {
                 background-color: #5B21B6 !important;
                 color: white !important;
-            }
-            /* Expander (Açılır menü) başlık rengi */
-            .st-emotion-cache-1fjoz6f {
-                color: #1a202c !important;
             }
         </style>
     """, unsafe_allow_html=True)
@@ -125,7 +124,7 @@ load_css()
 # --- Başlık ---
 header_col1, header_col2 = st.columns([1, 10])
 with header_col1:
-    st.image("https://static.ticimax.cloud/32769/uploads/editoruploads/hedef-image/logo.png", width=70)
+    st.image("https://static.ticimax.cloud/32769/uploads/editoruploads/hedef-image/logo.png", width=100) # Logo büyütüldü
 with header_col2:
     st.title("Hedef AVM Online Satış İstatistik")
 
