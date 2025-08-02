@@ -70,6 +70,7 @@ if periods_data and periods_data.get('periods'):
     month_order = ['OCAK', 'ŞUBAT', 'MART', 'NİSAN', 'MAYIS', 'HAZİRAN', 'TEMMUZ', 'AĞUSTOS', 'EYLÜL', 'EKİM', 'KASIM', 'ARALIK']
     
     def get_period_sort_key(period_string):
+        """Dönem adlarını güvenli bir şekilde sıralamak için anahtar oluşturur."""
         try:
             parts = period_string.split(' ')
             if len(parts) == 2:
@@ -122,7 +123,7 @@ if periods_data and periods_data.get('periods'):
                  with st.container(border=True):
                      st.subheader("Satış Performansı")
                      if st.button("Aylık Trendi Görüntüle", key="trend_button_main"):
-                         st.session_state.show_trend = True
+                         st.session_state.show_trend = not st.session_state.get('show_trend', False)
             
             st.markdown("<br>", unsafe_allow_html=True)
 
@@ -163,25 +164,21 @@ if periods_data and periods_data.get('periods'):
                 else:
                     st.info("Kategori verisi mevcut değil.")
 
-            # --- Aylık Trend Grafiği (Modal/Dialog içinde) ---
-            if 'show_trend' not in st.session_state:
-                st.session_state.show_trend = False
-
-            if st.session_state.show_trend:
-                with st.dialog("Aylık Ciro Trendi"):
-                    trend_data = fetch_data('getMonthlyTrendData')
-                    if trend_data:
-                        df_trend = pd.DataFrame(trend_data)
-                        df_trend['totalCiro'] = pd.to_numeric(df_trend['totalCiro'], errors='coerce').fillna(0)
-                        df_trend['sort_key'] = df_trend['period'].apply(get_period_sort_key)
-                        df_trend = df_trend.sort_values('sort_key').reset_index(drop=True)
-                        
+            # --- Aylık Trend Grafiği ---
+            if st.session_state.get('show_trend', False):
+                trend_data = fetch_data('getMonthlyTrendData')
+                if trend_data:
+                    df_trend = pd.DataFrame(trend_data)
+                    df_trend['totalCiro'] = pd.to_numeric(df_trend['totalCiro'], errors='coerce').fillna(0)
+                    df_trend['sort_key'] = df_trend['period'].apply(get_period_sort_key)
+                    df_trend = df_trend.sort_values('sort_key').reset_index(drop=True)
+                    
+                    with st.container(border=True):
                         st.subheader("Aylık Ciro Trendi")
                         fig_trend = px.line(df_trend, x='period', y='totalCiro', markers=True, labels={"period": "Dönem", "totalCiro": "Toplam Ciro (₺)"})
                         st.plotly_chart(fig_trend, use_container_width=True)
-                        if st.button("Kapat"):
-                            st.session_state.show_trend = False
-                            st.rerun()
+                else:
+                    st.warning("Aylık trend verisi alınamadı.")
         else:
             st.warning("Seçilen dönem için veri bulunamadı veya yüklenemedi.")
 else:
