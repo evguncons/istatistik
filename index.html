@@ -73,7 +73,7 @@
             padding: 30px;
             border-radius: 20px;
             width: 90%;
-            max-width: 800px;
+            max-width: 500px; /* Adjusted width for branch details */
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
             position: relative;
             animation: fadeIn 0.3s ease-out;
@@ -166,6 +166,7 @@
             <!-- Şubeler Ciro Karşılaştırması Kartı -->
             <div class="card lg:col-span-3">
                 <h2 class="card-title mb-4">Şubeler Ciro Karşılaştırması</h2>
+                <p class="text-sm text-gray-500 mb-4">Detayları görmek için şube ismine tıklayın.</p>
                 <div class="relative h-80 md:h-96 w-full">
                     <canvas id="branchCiroChart"></canvas>
                 </div>
@@ -173,7 +174,13 @@
 
             <!-- En Çok Satılan Kategoriler Kartı -->
             <div class="card lg:col-span-3">
-                <h2 class="card-title mb-4">Bu Ay En Çok Satılan Kategoriler</h2>
+                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                    <h2 class="card-title">Bu Ay En Çok Satılan Kategoriler</h2>
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <label for="branchFilterSelect" class="text-sm font-medium text-gray-600">Mağaza:</label>
+                        <select id="branchFilterSelect" class="period-select w-full sm:w-64"></select>
+                    </div>
+                </div>
                 <div id="mostSoldCategoriesList" class="space-y-3">
                     <p class="text-gray-400">Veri Yükleniyor...</p>
                 </div>
@@ -183,7 +190,7 @@
 
     <!-- Kategori Detay Modal'ı -->
     <div id="categoryDetailModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content !max-w-screen-md">
             <span class="close-button" id="closeCategoryModal">&times;</span>
             <h2 id="modalCategoryName" class="text-3xl font-bold mb-6"></h2>
             <div id="modalCategoryDetails" class="space-y-3"></div>
@@ -192,7 +199,7 @@
 
     <!-- Aylık Ciro Trendi Modal'ı -->
     <div id="monthlyTrendModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content !max-w-screen-lg">
             <span class="close-button" id="closeMonthlyTrendModal">&times;</span>
             <h2 class="text-3xl font-bold mb-2">Aylık Ciro Trendi</h2>
             <p id="monthlyGrowthDetail" class="text-gray-500 mb-6"></p>
@@ -202,12 +209,22 @@
         </div>
     </div>
 
+    <!-- YENİ: Şube Detay Modal'ı -->
+    <div id="branchDetailModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeBranchDetailModal">&times;</span>
+            <h2 id="modalBranchName" class="text-3xl font-bold mb-6"></h2>
+            <div id="modalBranchDetails" class="space-y-4"></div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- GLOBAL DEĞİŞKENLER ---
             let monthlyTrendChart;
             let branchCiroChart;
             let allRawSalesDataGlobal = [];
+            let leaderboardDataGlobal = [];
             
             const GOOGLE_APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxSquBU2QkyB79SkPSPHPd7BKJfiJZB3su85LosK7YBcRe4vdrrAAczgp3LOuCC76Xp7A/exec';
 
@@ -216,12 +233,16 @@
             const currentPeriodDisplay = document.getElementById('currentPeriodDisplay');
             const errorMessage = document.getElementById('errorMessage');
             const periodSelect = document.getElementById('periodSelect');
+            const branchFilterSelect = document.getElementById('branchFilterSelect');
             const totalCiroValueElement = document.getElementById('totalCiroValue');
             const mostSoldCategoriesListElement = document.getElementById('mostSoldCategoriesList');
             const categoryDetailModal = document.getElementById('categoryDetailModal');
             const monthlyTrendModal = document.getElementById('monthlyTrendModal');
+            const branchDetailModal = document.getElementById('branchDetailModal'); // Yeni
             const modalCategoryName = document.getElementById('modalCategoryName');
             const modalCategoryDetails = document.getElementById('modalCategoryDetails');
+            const modalBranchName = document.getElementById('modalBranchName'); // Yeni
+            const modalBranchDetails = document.getElementById('modalBranchDetails'); // Yeni
             const monthlyGrowthDetailElement = document.getElementById('monthlyGrowthDetail');
 
             // --- TEMEL FONKSİYONLAR ---
@@ -243,10 +264,13 @@
             
             const formatValue = (value, criteria) => {
                 value = value === undefined || value === null ? 0 : value;
-                switch (criteria) {
-                    case 'totalCiro': return value.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
-                    default: return `${value} Adet`;
+                if (criteria === 'totalCiro' || criteria === 'averageCiro') {
+                    return value.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
                 }
+                if (criteria === 'salesRate') {
+                    return `%${value.toFixed(2)}`;
+                }
+                return `${value} Adet`;
             };
 
             const parseCiroClient = (value) => {
@@ -320,8 +344,11 @@
                     totalCiroValueElement.textContent = formatValue(totalCiro, 'totalCiro');
                     
                     allRawSalesDataGlobal = data.rawSales || [];
+                    leaderboardDataGlobal = data.leaderboard || [];
+
+                    populateBranchFilter(leaderboardDataGlobal);
                     renderMostSoldCategoriesList(allRawSalesDataGlobal);
-                    renderBranchCiroChart(data.leaderboard || []);
+                    renderBranchCiroChart(leaderboardDataGlobal);
 
                     hideLoadingState();
                 } catch (error) {
@@ -441,9 +468,7 @@
             
             function renderBranchCiroChart(leaderboardData) {
                 const ctx = document.getElementById('branchCiroChart').getContext('2d');
-                if (branchCiroChart) {
-                    branchCiroChart.destroy();
-                }
+                if (branchCiroChart) branchCiroChart.destroy();
 
                 const sortedData = [...leaderboardData].sort((a, b) => b.totalCiro - a.totalCiro);
 
@@ -467,6 +492,17 @@
                         indexAxis: 'y',
                         responsive: true,
                         maintainAspectRatio: false,
+                        onHover: (event, chartElement) => {
+                             event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                        },
+                        onClick: (event, elements) => {
+                            if (elements.length > 0) {
+                                const chartElement = elements[0];
+                                const index = chartElement.index;
+                                const branchName = branchCiroChart.data.labels[index];
+                                showBranchDetails(branchName);
+                            }
+                        },
                         plugins: {
                             legend: { display: false },
                             tooltip: {
@@ -490,9 +526,26 @@
                 });
             }
 
-            function renderMostSoldCategoriesList(rawSalesData) {
+            function populateBranchFilter(leaderboardData) {
+                const currentSelection = branchFilterSelect.value;
+                branchFilterSelect.innerHTML = '<option value="all">Tüm Mağazalar</option>';
+                const branchNames = new Set(leaderboardData.map(item => item.branch));
+                branchNames.forEach(branch => {
+                    if (branch) {
+                        const option = new Option(branch, branch);
+                        branchFilterSelect.add(option);
+                    }
+                });
+                branchFilterSelect.value = currentSelection || 'all';
+            }
+
+            function renderMostSoldCategoriesList(rawSalesData, selectedBranch = 'all') {
+                const filteredSalesData = selectedBranch === 'all'
+                    ? rawSalesData
+                    : rawSalesData.filter(sale => sale.branch === selectedBranch);
+
                 const categorySalesDetails = {};
-                rawSalesData.forEach(sale => {
+                filteredSalesData.forEach(sale => {
                     const categoryName = String(sale.category || '').trim();
                     const result = String(sale.result || '').trim();
                     
@@ -517,7 +570,7 @@
                                      </div>`;
                     });
                 } else {
-                    listHtml = `<p class="text-gray-400">Bu dönem için satışa dönen kategori verisi bulunamadı.</p>`;
+                    listHtml = `<p class="text-gray-400">Bu filtre için satışa dönen kategori verisi bulunamadı.</p>`;
                 }
                 
                 mostSoldCategoriesListElement.innerHTML = listHtml;
@@ -546,6 +599,44 @@
                 categoryDetailModal.style.display = 'flex';
             };
 
+            // YENİ: Şube Detaylarını Gösteren Fonksiyon
+            window.showBranchDetails = (branchName) => {
+                const branchLeaderboardData = leaderboardDataGlobal.find(b => b.branch === branchName);
+                const branchRawData = allRawSalesDataGlobal.filter(s => s.branch === branchName);
+                const successfulSales = branchRawData.filter(s => s.result === 'Satışa Döndü');
+
+                const totalCiro = branchLeaderboardData ? branchLeaderboardData.totalCiro : 0;
+                const successfulSalesCount = successfulSales.length;
+                const totalCalls = branchRawData.length;
+                const salesRate = totalCalls > 0 ? (successfulSalesCount / totalCalls) * 100 : 0;
+                const averageCiro = successfulSalesCount > 0 ? totalCiro / successfulSalesCount : 0;
+
+                modalBranchName.textContent = `${branchName} Şubesi`;
+                modalBranchDetails.innerHTML = `
+                    <div class="flex justify-between items-center py-2 border-b">
+                        <strong class="font-semibold text-gray-600">Toplam Ciro:</strong>
+                        <span class="font-bold text-lg text-purple-600">${formatValue(totalCiro, 'totalCiro')}</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b">
+                        <strong class="font-semibold text-gray-600">Başarılı Satış Sayısı:</strong>
+                        <span class="font-bold text-lg text-purple-600">${formatValue(successfulSalesCount)}</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b">
+                        <strong class="font-semibold text-gray-600">Toplam Arama:</strong>
+                        <span class="font-bold text-lg text-purple-600">${formatValue(totalCalls)}</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b">
+                        <strong class="font-semibold text-gray-600">Satış Oranı:</strong>
+                        <span class="font-bold text-lg text-green-600">${formatValue(salesRate, 'salesRate')}</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2">
+                        <strong class="font-semibold text-gray-600">Ortalama Ciro:</strong>
+                        <span class="font-bold text-lg text-purple-600">${formatValue(averageCiro, 'averageCiro')}</span>
+                    </div>
+                `;
+                branchDetailModal.style.display = 'flex';
+            };
+
             // --- OLAY DİNLEYİCİLERİ VE BAŞLATMA ---
 
             document.getElementById('applyFilter').onclick = () => {
@@ -555,16 +646,22 @@
                 }
             };
 
+            branchFilterSelect.addEventListener('change', (e) => {
+                renderMostSoldCategoriesList(allRawSalesDataGlobal, e.target.value);
+            });
+
             document.getElementById('showMonthlyTrend').onclick = () => {
                 fetchAllMonthlyData();
             };
 
             document.getElementById('closeCategoryModal').onclick = () => categoryDetailModal.style.display = 'none';
             document.getElementById('closeMonthlyTrendModal').onclick = () => monthlyTrendModal.style.display = 'none';
+            document.getElementById('closeBranchDetailModal').onclick = () => branchDetailModal.style.display = 'none'; // Yeni
 
             window.onclick = (event) => {
                 if (event.target == categoryDetailModal) categoryDetailModal.style.display = 'none';
                 if (event.target == monthlyTrendModal) monthlyTrendModal.style.display = 'none';
+                if (event.target == branchDetailModal) branchDetailModal.style.display = 'none'; // Yeni
             };
 
             const initialize = async () => {
