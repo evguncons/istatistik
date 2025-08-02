@@ -198,7 +198,7 @@ if periods_data and periods_data.get('periods'):
                     df_sorted = df_leaderboard.sort_values("totalCiro", ascending=True)
                     fig = px.bar(df_sorted, x="totalCiro", y="branch", orientation='h', text_auto='.2s', labels={"totalCiro": "Toplam Ciro (₺)", "branch": "Şube"})
                     fig.update_traces(marker_color='#6D28D9', textposition='outside')
-                    fig.update_layout(yaxis_title=None, xaxis_title=None, showlegend=False, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+                    fig.update_layout(yaxis_title=None, xaxis_title=None, showlegend=False, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#1a202c')
                     st.plotly_chart(fig, use_container_width=True)
                 else:
                     st.info("Bu dönem için şube ciro verisi bulunamadı.")
@@ -239,6 +239,7 @@ if periods_data and periods_data.get('periods'):
                         st.subheader("Aylık Ciro Trendi")
                         fig_trend = px.line(df_trend, x='period', y='totalCiro', markers=True, labels={"period": "Dönem", "totalCiro": "Toplam Ciro (₺)"})
                         fig_trend.update_traces(line_color='#6D28D9')
+                        fig_trend.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#1a202c')
                         st.plotly_chart(fig_trend, use_container_width=True)
                 else:
                     st.warning("Aylık trend verisi alınamadı.")
