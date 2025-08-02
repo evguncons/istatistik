@@ -31,7 +31,6 @@ def load_css():
             /* Genel arayüz ve fontlar */
             html, body, [class*="st-"] {
                 font-family: 'Inter', sans-serif;
-                color: #1a202c; /* DÜZELTME: Varsayılan metin rengini siyah yap */
             }
             /* Streamlit'in ana arkaplanını ve padding'ini ayarla */
             .main .block-container {
@@ -63,9 +62,13 @@ def load_css():
                 color: #4a5568 !important;
             }
             /* Başlık stilleri */
-            h1, h2, h3 {
-                color: #1a202c !important; /* DÜZELTME: Başlık renklerini siyah yap */
+            h1 {
                 font-weight: 800;
+                color: #1a202c;
+            }
+            h2, h3 {
+                color: #1a202c;
+                font-weight: 700;
             }
             /* Buton stilini düzenleme */
             .stButton>button {
@@ -80,10 +83,6 @@ def load_css():
             .stButton>button:hover {
                 background-color: #5B21B6 !important;
                 color: white !important;
-            }
-            /* Expander (Açılır menü) başlık rengi */
-            .st-emotion-cache-1fjoz6f {
-                color: #1a202c !important;
             }
         </style>
     """, unsafe_allow_html=True)
@@ -147,11 +146,13 @@ if periods_data and periods_data.get('periods'):
     periods = sorted(periods_data['periods'], key=get_period_sort_key, reverse=True)
     
     st.markdown('<div class="card">', unsafe_allow_html=True)
-    filter_col1, filter_col2 = st.columns([1, 2])
+    filter_col1, filter_col2, filter_col3 = st.columns([2,2,1])
     with filter_col1:
         st.subheader("Dönem Seçimi")
     with filter_col2:
         selected_period = st.selectbox("Dönem", periods, label_visibility="collapsed")
+    with filter_col3:
+        getir_button = st.button("Getir")
     st.markdown('</div>', unsafe_allow_html=True)
     
     st.markdown(f"### **{selected_period}** Dönemi Analizi")
@@ -177,19 +178,17 @@ if periods_data and periods_data.get('periods'):
             total_sales_count = df_leaderboard['successfulSalesCount'].sum()
             avg_sale_amount = total_ciro / total_sales_count if total_sales_count > 0 else 0
 
-            metric_col1, metric_col2, metric_col3 = st.columns(3)
+            metric_col1, metric_col2 = st.columns(2)
             with metric_col1:
                 st.markdown('<div class="card">', unsafe_allow_html=True)
                 st.metric(label="Dönem Toplam Ciro", value=format_currency(total_ciro))
                 st.markdown('</div>', unsafe_allow_html=True)
             with metric_col2:
-                st.markdown('<div class="card">', unsafe_allow_html=True)
-                st.metric(label="Toplam Satış Adedi", value=f"{int(total_sales_count)}")
-                st.markdown('</div>', unsafe_allow_html=True)
-            with metric_col3:
-                st.markdown('<div class="card">', unsafe_allow_html=True)
-                st.metric(label="Ortalama Satış Tutarı", value=format_currency(avg_sale_amount))
-                st.markdown('</div>', unsafe_allow_html=True)
+                 st.markdown('<div class="card" style="text-align: center;">', unsafe_allow_html=True)
+                 st.subheader("Satış Performansı")
+                 if st.button("Aylık Trendi Görüntüle", key="trend_button_main"):
+                     st.session_state.show_trend = True
+                 st.markdown('</div>', unsafe_allow_html=True)
             
             st.markdown("<br>", unsafe_allow_html=True)
 
@@ -232,23 +231,26 @@ if periods_data and periods_data.get('periods'):
                 st.info("Kategori verisi mevcut değil.")
             st.markdown('</div>', unsafe_allow_html=True)
 
-            # --- Aylık Trend Butonu ve Grafiği ---
-            st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("Aylık Trendi Görüntüle"):
-                trend_data = fetch_data('getMonthlyTrendData')
-                if trend_data:
-                    df_trend = pd.DataFrame(trend_data)
-                    df_trend['totalCiro'] = pd.to_numeric(df_trend['totalCiro'], errors='coerce').fillna(0)
-                    df_trend['sort_key'] = df_trend['period'].apply(get_period_sort_key)
-                    df_trend = df_trend.sort_values('sort_key').reset_index(drop=True)
-                    
-                    st.markdown('<div class="card">', unsafe_allow_html=True)
-                    st.subheader("Aylık Ciro Trendi")
-                    fig_trend = px.line(df_trend, x='period', y='totalCiro', markers=True, labels={"period": "Dönem", "totalCiro": "Toplam Ciro (₺)"})
-                    fig_trend.update_traces(line_color='#6D28D9')
-                    fig_trend.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-                    st.plotly_chart(fig_trend, use_container_width=True)
-                    st.markdown('</div>', unsafe_allow_html=True)
+            # --- Aylık Trend Grafiği (Modal/Dialog içinde) ---
+            if 'show_trend' not in st.session_state:
+                st.session_state.show_trend = False
+
+            if st.session_state.show_trend:
+                with st.dialog("Aylık Ciro Trendi"):
+                    trend_data = fetch_data('getMonthlyTrendData')
+                    if trend_data:
+                        df_trend = pd.DataFrame(trend_data)
+                        df_trend['totalCiro'] = pd.to_numeric(df_trend['totalCiro'], errors='coerce').fillna(0)
+                        df_trend['sort_key'] = df_trend['period'].apply(get_period_sort_key)
+                        df_trend = df_trend.sort_values('sort_key').reset_index(drop=True)
+                        
+                        st.subheader("Aylık Ciro Trendi")
+                        fig_trend = px.line(df_trend, x='period', y='totalCiro', markers=True, labels={"period": "Dönem", "totalCiro": "Toplam Ciro (₺)"})
+                        fig_trend.update_traces(line_color='#6D28D9')
+                        st.plotly_chart(fig_trend, use_container_width=True)
+                        if st.button("Kapat"):
+                            st.session_state.show_trend = False
+                            st.rerun()
         else:
             st.warning("Seçilen dönem için veri bulunamadı veya yüklenemedi.")
 else:
