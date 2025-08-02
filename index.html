@@ -295,7 +295,11 @@
                     const data = await response.json();
                     if (data.error) throw new Error(data.error);
 
-                    const periods = data.periods || [];
+                    let periods = data.periods || [];
+                    // --- DEĞİŞİKLİK BURADA ---
+                    // "sayfa6" gibi istenmeyen sayfaları filtrele
+                    periods = periods.filter(period => period.toLowerCase() !== 'sayfa6');
+
                     const currentSelected = periodSelect.value;
                     periodSelect.innerHTML = '';
                     
