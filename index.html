@@ -372,7 +372,6 @@
                     let data = await response.json(); // let olarak değiştirildi
                     if (data.error) throw new Error(data.error);
 
-                    // --- DEĞİŞİKLİK BURADA ---
                     // Aylık trend verilerinden de "sayfa6"yı filtrele
                     data = data.filter(item => item.period.toLowerCase() !== 'sayfa6');
 
@@ -618,7 +617,9 @@
                 const salesRate = totalCalls > 0 ? (successfulSalesCount / totalCalls) * 100 : 0;
                 const averageCiro = successfulSalesCount > 0 ? totalCiro / successfulSalesCount : 0;
 
-                modalBranchName.textContent = `${branchName} Şubesi`;
+                // --- DEĞİŞİKLİK BURADA ---
+                modalBranchName.textContent = branchName;
+
                 modalBranchDetails.innerHTML = `
                     <div class="flex justify-between items-center py-2 border-b">
                         <strong class="font-semibold text-gray-600">Toplam Ciro:</strong>
