@@ -31,6 +31,7 @@ def load_css():
             /* Genel arayüz ve fontlar */
             html, body, [class*="st-"] {
                 font-family: 'Inter', sans-serif;
+                color: #1a202c; /* DÜZELTME: Varsayılan metin rengini siyah yap */
             }
             /* Streamlit'in ana arkaplanını ve padding'ini ayarla */
             .main .block-container {
@@ -62,13 +63,9 @@ def load_css():
                 color: #4a5568 !important;
             }
             /* Başlık stilleri */
-            h1 {
+            h1, h2, h3 {
+                color: #1a202c !important; /* DÜZELTME: Başlık renklerini siyah yap */
                 font-weight: 800;
-                color: #1a202c;
-            }
-            h2, h3 {
-                color: #4a5568;
-                font-weight: 600;
             }
             /* Buton stilini düzenleme */
             .stButton>button {
@@ -83,6 +80,10 @@ def load_css():
             .stButton>button:hover {
                 background-color: #5B21B6 !important;
                 color: white !important;
+            }
+            /* Expander (Açılır menü) başlık rengi */
+            .st-emotion-cache-1fjoz6f {
+                color: #1a202c !important;
             }
         </style>
     """, unsafe_allow_html=True)
