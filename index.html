@@ -296,7 +296,6 @@
                     if (data.error) throw new Error(data.error);
 
                     let periods = data.periods || [];
-                    // --- DEĞİŞİKLİK BURADA ---
                     // "sayfa6" gibi istenmeyen sayfaları filtrele
                     periods = periods.filter(period => period.toLowerCase() !== 'sayfa6');
 
@@ -370,8 +369,12 @@
                     const url = `${GOOGLE_APPS_SCRIPT_WEB_APP_URL}?action=getMonthlyTrendData&t=${new Date().getTime()}`;
                     const response = await fetch(url);
                     if (!response.ok) throw new Error(`Sunucu hatası: ${response.status}`);
-                    const data = await response.json();
+                    let data = await response.json(); // let olarak değiştirildi
                     if (data.error) throw new Error(data.error);
+
+                    // --- DEĞİŞİKLİK BURADA ---
+                    // Aylık trend verilerinden de "sayfa6"yı filtrele
+                    data = data.filter(item => item.period.toLowerCase() !== 'sayfa6');
 
                     const monthOrder = ['OCAK', 'ŞUBAT', 'MART', 'NİSAN', 'MAYIS', 'HAZİRAN', 'TEMMUZ', 'AĞUSTOS', 'EYLÜL', 'EKİM', 'KASIM', 'ARALIK'];
                     data.sort((a,b) => {
