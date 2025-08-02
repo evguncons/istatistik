@@ -31,7 +31,7 @@ def load_css():
             /* Genel arayüz ve fontlar */
             html, body, [class*="st-"] {
                 font-family: 'Inter', sans-serif;
-                color: #1a202c; /* DÜZELTME: Varsayılan metin rengini siyah yap */
+                color: #1a202c; /* Varsayılan metin rengini koyu yap */
             }
             /* Streamlit'in ana arkaplanını ve padding'ini ayarla */
             .main .block-container {
