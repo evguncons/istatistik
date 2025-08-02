@@ -18,6 +18,80 @@ st.set_page_config(
 APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSquBU2QkyB79SkPSPHPd7BKJfiJZB3su85LosK7YBcRe4vdrrAAczgp3LOuCC76Xp7A/exec'
 
 # -----------------------------------------------------------------------------
+# Özel CSS ile Arayüzü Güzelleştirme
+# -----------------------------------------------------------------------------
+
+def load_css():
+    """Özel CSS stillerini yükler."""
+    st.markdown("""
+        <style>
+            /* Genel arayüz ve fontlar */
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+            
+            html, body, [class*="st-"] {
+                font-family: 'Inter', sans-serif;
+            }
+            /* Streamlit'in ana arkaplanını ve padding'ini ayarla */
+            .main .block-container {
+                padding-top: 2rem;
+                padding-bottom: 2rem;
+                padding-left: 2rem;
+                padding-right: 2rem;
+            }
+            .stApp {
+                background-color: #f4f7fe;
+            }
+            /* Kart stilini taklit eden container */
+            .card {
+                background-color: #ffffff;
+                border-radius: 20px;
+                padding: 24px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+                transition: all 0.3s ease;
+                height: 100%;
+            }
+            .card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+            }
+            /* Metriklerin (sayısal göstergeler) stilini düzenleme */
+            [data-testid="stMetricValue"] {
+                font-size: 2.5rem !important;
+                font-weight: 800 !important;
+                color: #6D28D9 !important;
+            }
+            [data-testid="stMetricLabel"] {
+                font-size: 1rem !important;
+                font-weight: 600 !important;
+                color: #4a5568 !important;
+            }
+            /* Buton stilini düzenleme */
+            .stButton>button {
+                border-radius: 12px !important;
+                font-weight: 600 !important;
+                background-color: #6D28D9 !important;
+                color: white !important;
+                width: 100%;
+                padding: 12px 24px !important;
+                border: none !important;
+            }
+            .stButton>button:hover {
+                background-color: #5B21B6 !important;
+                color: white !important;
+            }
+            /* Başlık stilleri */
+            h1 {
+                font-weight: 800;
+                color: #1a202c;
+            }
+            h2, h3, h4, h5, h6 {
+                color: #4a5568;
+                font-weight: 600;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
+# -----------------------------------------------------------------------------
 # Veri Çekme ve İşleme Fonksiyonları
 # -----------------------------------------------------------------------------
 
@@ -48,6 +122,8 @@ def format_currency(value):
 # Ana Arayüz Başlangıcı
 # -----------------------------------------------------------------------------
 
+load_css()
+
 # --- Başlık ---
 header_col1, header_col2 = st.columns([1, 10])
 with header_col1:
@@ -73,7 +149,17 @@ if periods_data and periods_data.get('periods'):
 
     periods = sorted(periods_data['periods'], key=get_period_sort_key, reverse=True)
     
-    selected_period = st.selectbox("Dönem Seçimi", periods, label_visibility="collapsed")
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    filter_col1, filter_col2, filter_col3 = st.columns([2, 2, 1])
+    with filter_col1:
+        st.write("#### Dönem Seçimi")
+    with filter_col2:
+        selected_period = st.selectbox("Dönem", periods, label_visibility="collapsed")
+    with filter_col3:
+        # "Getir" butonu artık st.form ile yönetiliyor, bu yüzden burada bir butona gerek yok.
+        # Ancak boşluk bırakmak için bir yer tutucu ekleyebiliriz.
+        pass
+    st.markdown('</div>', unsafe_allow_html=True)
     
     st.markdown(f"### **{selected_period}** Dönemi Analizi")
     
@@ -99,26 +185,38 @@ if periods_data and periods_data.get('periods'):
             avg_sale_amount = total_ciro / total_sales_count if total_sales_count > 0 else 0
 
             metric_col1, metric_col2, metric_col3 = st.columns(3)
-            metric_col1.metric(label="Dönem Toplam Ciro", value=format_currency(total_ciro))
-            metric_col2.metric(label="Toplam Satış Adedi", value=f"{int(total_sales_count)}")
-            metric_col3.metric(label="Ortalama Satış Tutarı", value=format_currency(avg_sale_amount))
+            with metric_col1:
+                st.markdown('<div class="card">', unsafe_allow_html=True)
+                st.metric(label="Dönem Toplam Ciro", value=format_currency(total_ciro))
+                st.markdown('</div>', unsafe_allow_html=True)
+            with metric_col2:
+                st.markdown('<div class="card">', unsafe_allow_html=True)
+                st.metric(label="Toplam Satış Adedi", value=f"{int(total_sales_count)}")
+                st.markdown('</div>', unsafe_allow_html=True)
+            with metric_col3:
+                st.markdown('<div class="card">', unsafe_allow_html=True)
+                st.metric(label="Ortalama Satış Tutarı", value=format_currency(avg_sale_amount))
+                st.markdown('</div>', unsafe_allow_html=True)
             
             st.markdown("<br>", unsafe_allow_html=True)
 
             # --- Şube ve Kategori Analizi ---
             col1, col2 = st.columns(2)
             with col1:
+                st.markdown('<div class="card">', unsafe_allow_html=True)
                 st.subheader("Şubeler Ciro Karşılaştırması")
                 if not df_leaderboard.empty and df_leaderboard['totalCiro'].sum() > 0:
                     df_sorted = df_leaderboard.sort_values("totalCiro", ascending=True)
                     fig = px.bar(df_sorted, x="totalCiro", y="branch", orientation='h', text_auto='.2s', labels={"totalCiro": "Toplam Ciro (₺)", "branch": "Şube"})
-                    fig.update_traces(textposition='outside')
-                    fig.update_layout(yaxis_title=None, xaxis_title=None, showlegend=False)
+                    fig.update_traces(marker_color='#6D28D9', textposition='outside')
+                    fig.update_layout(yaxis_title=None, xaxis_title=None, showlegend=False, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
                     st.plotly_chart(fig, use_container_width=True)
                 else:
                     st.info("Bu dönem için şube ciro verisi bulunamadı.")
+                st.markdown('</div>', unsafe_allow_html=True)
 
             with col2:
+                st.markdown('<div class="card">', unsafe_allow_html=True)
                 st.subheader("Bu Ay En Çok Satılan Kategoriler")
                 if not df_raw_sales.empty:
                     df_sold = df_raw_sales[df_raw_sales['result'].str.lower() == 'satışa döndü']
@@ -140,6 +238,7 @@ if periods_data and periods_data.get('periods'):
                         st.info("Bu dönem için satılan kategori bulunamadı.")
                 else:
                     st.info("Kategori verisi mevcut değil.")
+                st.markdown('</div>', unsafe_allow_html=True)
 
             # --- Aylık Trend Butonu ve Grafiği ---
             st.markdown("<br>", unsafe_allow_html=True)
@@ -151,9 +250,13 @@ if periods_data and periods_data.get('periods'):
                     df_trend['sort_key'] = df_trend['period'].apply(get_period_sort_key)
                     df_trend = df_trend.sort_values('sort_key').reset_index(drop=True)
                     
+                    st.markdown('<div class="card">', unsafe_allow_html=True)
                     st.subheader("Aylık Ciro Trendi")
                     fig_trend = px.line(df_trend, x='period', y='totalCiro', markers=True, labels={"period": "Dönem", "totalCiro": "Toplam Ciro (₺)"})
+                    fig_trend.update_traces(line_color='#6D28D9')
+                    fig_trend.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
                     st.plotly_chart(fig_trend, use_container_width=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
         else:
             st.warning("Seçilen dönem için veri bulunamadı veya yüklenemedi.")
 else:
