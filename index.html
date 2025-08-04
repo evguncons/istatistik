@@ -274,6 +274,7 @@
             let branchCiroChart, salesFunnelChart, monthlyTrendChart;
             let allRawSalesDataGlobal = [];
             let leaderboardDataGlobal = [];
+            let autoRefreshInterval;
             
             const GOOGLE_APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxSquBU2QkyB79SkPSPHPd7BKJfiJZB3su85LosK7YBcRe4vdrrAAczgp3LOuCC76Xp7A/exec';
 
@@ -345,14 +346,17 @@
                 }
             }
             
-            async function fetchData(selectedPeriod) {
+            async function fetchData(selectedPeriod, isSilentRefresh = false) {
                 if (!selectedPeriod) {
                     errorMessage.textContent = "Lütfen bir dönem seçin.";
                     errorMessage.classList.remove('hidden');
                     hideLoadingState();
                     return;
                 }
-                setLoadingState(`'${selectedPeriod}' verileri yükleniyor...`);
+                
+                if (!isSilentRefresh) {
+                    setLoadingState(`'${selectedPeriod}' verileri yükleniyor...`);
+                }
                 currentPeriodDisplay.textContent = `${selectedPeriod} Dönemi Analizi`;
 
                 try {
@@ -368,14 +372,30 @@
                     renderKPIs(allRawSalesDataGlobal, leaderboardDataGlobal);
                     renderBranchCiroChart(leaderboardDataGlobal);
                     renderSalesFunnelChart(allRawSalesDataGlobal);
+                    
+                    const previousFilterValue = categoryBranchFilter.value;
                     populateBranchFilter(leaderboardDataGlobal);
-                    renderMostSoldCategoriesList();
+                    
+                    // DÜZELTME:
+                    if (isSilentRefresh) {
+                        // Sessiz yenilemede, eski filtre değerini korumaya çalış
+                        categoryBranchFilter.value = previousFilterValue;
+                    } else {
+                        // Manuel yenilemede, "Tüm Şubeler" olarak ayarla
+                        categoryBranchFilter.value = 'all';
+                    }
+                    
+                    renderMostSoldCategoriesList(categoryBranchFilter.value);
 
-                    hideLoadingState();
+                    if (!isSilentRefresh) {
+                        hideLoadingState();
+                    }
                 } catch (error) {
                     errorMessage.textContent = `Veriler yüklenemedi: ${error.message}.`;
                     errorMessage.classList.remove('hidden');
-                    hideLoadingState();
+                    if (!isSilentRefresh) {
+                        hideLoadingState();
+                    }
                 }
             }
 
@@ -725,6 +745,12 @@
                     errorMessage.classList.remove('hidden');
                     hideLoadingState();
                 }
+                
+                if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+                autoRefreshInterval = setInterval(() => {
+                    console.log("Veriler otomatik olarak yenileniyor...");
+                    fetchData(periodSelect.value, true);
+                }, 60000);
             };
             
             initialize();
