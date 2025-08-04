@@ -55,6 +55,18 @@
         .primary-button:hover {
             background-color: #5B21B6;
         }
+        .period-select {
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            background-color: #fff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .period-select:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.4);
+        }
         #loadingOverlay {
             position: fixed;
             top: 0;
@@ -152,7 +164,7 @@
                     Dönem Seçimi
                 </p>
                 <div class="flex items-center gap-4 w-full md:w-auto">
-                    <select id="periodSelect" class="period-select w-full md:w-auto"></select>
+                    <select id="periodSelect" class="period-select"></select>
                     <button id="applyFilter" class="primary-button">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L13 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 019 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" /></svg>
                         Getir
@@ -204,10 +216,17 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 8v5z" /></svg>
                         Dönemin En Çok Satılan Kategorileri
                     </h2>
-                     <button id="showMonthlyTrend" class="primary-button">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                        Aylık Trendi Görüntüle
-                    </button>
+                     <div class="flex items-center gap-4 ml-auto">
+                        <!-- YENİ: Şube Filtresi -->
+                        <div class="flex items-center gap-2">
+                            <label for="categoryBranchFilter" class="text-sm font-medium text-gray-600">Şube:</label>
+                            <select id="categoryBranchFilter" class="period-select text-sm"></select>
+                        </div>
+                         <button id="showMonthlyTrend" class="primary-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                            Aylık Trend
+                        </button>
+                    </div>
                 </div>
                 <div id="mostSoldCategoriesList" class="space-y-3 mt-4">
                     <p class="text-gray-400">Veri Yükleniyor...</p>
@@ -237,7 +256,7 @@
         </div>
     </div>
 
-    <!-- YENİ: Şube Detay Modal'ı -->
+    <!-- Şube Detay Modal'ı -->
     <div id="branchDetailModal" class="modal">
         <div class="modal-content">
             <span class="close-button" id="closeBranchModal">&times;</span>
@@ -251,7 +270,7 @@
             // --- GLOBAL DEĞİŞKENLER ---
             let branchCiroChart, salesFunnelChart, monthlyTrendChart;
             let allRawSalesDataGlobal = [];
-            let leaderboardDataGlobal = []; // Şube verilerini globalde tutmak için
+            let leaderboardDataGlobal = [];
             
             const GOOGLE_APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxSquBU2QkyB79SkPSPHPd7BKJfiJZB3su85LosK7YBcRe4vdrrAAczgp3LOuCC76Xp7A/exec';
 
@@ -271,10 +290,10 @@
             const modalCategoryName = document.getElementById('modalCategoryName');
             const modalCategoryDetails = document.getElementById('modalCategoryDetails');
             const monthlyGrowthDetailElement = document.getElementById('monthlyGrowthDetail');
-            // YENİ: Şube modal elementleri
             const branchDetailModal = document.getElementById('branchDetailModal');
             const modalBranchName = document.getElementById('modalBranchName');
             const modalBranchDetails = document.getElementById('modalBranchDetails');
+            const categoryBranchFilter = document.getElementById('categoryBranchFilter'); // YENİ
 
             // --- TEMEL FONKSİYONLAR ---
             const setLoadingState = (message = "Veriler Yükleniyor...") => {
@@ -341,12 +360,13 @@
                     if(data.error) throw new Error(data.error);
 
                     allRawSalesDataGlobal = data.rawSales || [];
-                    leaderboardDataGlobal = data.leaderboard || []; // Veriyi global değişkene ata
+                    leaderboardDataGlobal = data.leaderboard || [];
                     
                     renderKPIs(allRawSalesDataGlobal, leaderboardDataGlobal);
                     renderBranchCiroChart(leaderboardDataGlobal);
                     renderSalesFunnelChart(allRawSalesDataGlobal);
-                    renderMostSoldCategoriesList(allRawSalesDataGlobal);
+                    populateBranchFilter(leaderboardDataGlobal); // YENİ: Filtreyi doldur
+                    renderMostSoldCategoriesList(); // YENİ: Başlangıçta tüm şubeleri göster
 
                     hideLoadingState();
                 } catch (error) {
@@ -457,9 +477,29 @@
                 });
             }
             
-            function renderMostSoldCategoriesList(rawSalesData) {
+            // YENİ: Şube filtresini dolduran fonksiyon
+            function populateBranchFilter(leaderboardData) {
+                categoryBranchFilter.innerHTML = ''; // Mevcut seçenekleri temizle
+                const allBranchesOption = new Option('Tüm Şubeler', 'all');
+                categoryBranchFilter.add(allBranchesOption);
+
+                leaderboardData.forEach(branchData => {
+                    const option = new Option(branchData.branch, branchData.branch);
+                    categoryBranchFilter.add(option);
+                });
+            }
+
+            // GÜNCELLENDİ: Kategori listesini şubeye göre filtreleyecek şekilde güncellendi
+            function renderMostSoldCategoriesList(selectedBranch = 'all') {
+                let dataToProcess = allRawSalesDataGlobal;
+
+                // Eğer belirli bir şube seçildiyse, veriyi filtrele
+                if (selectedBranch !== 'all') {
+                    dataToProcess = allRawSalesDataGlobal.filter(sale => sale.branch === selectedBranch);
+                }
+
                 const categorySalesDetails = {};
-                rawSalesData.forEach(sale => {
+                dataToProcess.forEach(sale => {
                     const categoryName = String(sale.category || '').trim();
                     
                     if (sale.result === 'Satışa Döndü' && categoryName.length > 0) {
@@ -483,7 +523,7 @@
                                      </div>`;
                     });
                 } else {
-                    listHtml = `<p class="text-gray-400">Bu dönem için satışa dönen kategori verisi bulunamadı.</p>`;
+                    listHtml = `<p class="text-gray-400">Bu filtre için satışa dönen kategori verisi bulunamadı.</p>`;
                 }
                 
                 mostSoldCategoriesListElement.innerHTML = listHtml;
@@ -512,7 +552,6 @@
                 categoryDetailModal.style.display = 'flex';
             };
             
-            // YENİ: Şube detaylarını gösteren fonksiyon
             window.showBranchDetails = (branchName) => {
                 const branchInfo = leaderboardDataGlobal.find(b => b.branch === branchName);
                 const totalCiro = branchInfo ? branchInfo.totalCiro : 0;
@@ -664,12 +703,17 @@
             document.getElementById('showMonthlyTrend').onclick = fetchAllMonthlyData;
             document.getElementById('closeCategoryModal').onclick = () => categoryDetailModal.style.display = 'none';
             document.getElementById('closeMonthlyTrendModal').onclick = () => monthlyTrendModal.style.display = 'none';
-            document.getElementById('closeBranchModal').onclick = () => branchDetailModal.style.display = 'none'; // YENİ
+            document.getElementById('closeBranchModal').onclick = () => branchDetailModal.style.display = 'none';
+            
+            // YENİ: Kategori şube filtresi için olay dinleyici
+            categoryBranchFilter.addEventListener('change', () => {
+                renderMostSoldCategoriesList(categoryBranchFilter.value);
+            });
             
             window.onclick = (event) => {
                 if (event.target == categoryDetailModal) categoryDetailModal.style.display = 'none';
                 if (event.target == monthlyTrendModal) monthlyTrendModal.style.display = 'none';
-                if (event.target == branchDetailModal) branchDetailModal.style.display = 'none'; // YENİ
+                if (event.target == branchDetailModal) branchDetailModal.style.display = 'none';
             };
 
             const initialize = async () => {
