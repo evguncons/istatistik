@@ -154,9 +154,12 @@
     </div>
 
     <div class="w-full max-w-7xl mx-auto">
-        <header class="mb-8">
-            <h1 class="main-title text-4xl font-extrabold">Gelişmiş Satış Analiz Paneli</h1>
-            <p id="currentPeriodDisplay" class="text-gray-500 mt-1">Lütfen bir dönem seçin</p>
+        <header class="mb-8 text-center">
+            <div class="flex items-center justify-center gap-4">
+                <img src="https://static.ticimax.cloud/32769/uploads/editoruploads/hedef-image/logo.png" alt="Hedef AVM Logo" class="h-12 md:h-16">
+                <h1 class="main-title text-2xl md:text-4xl font-extrabold">HEDEF AVM ONLİNE SATIŞ İSTATİSTİK</h1>
+            </div>
+            <p id="currentPeriodDisplay" class="text-gray-500 mt-2">Lütfen bir dönem seçin</p>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -376,12 +379,9 @@
                     const previousFilterValue = categoryBranchFilter.value;
                     populateBranchFilter(leaderboardDataGlobal);
                     
-                    // DÜZELTME:
                     if (isSilentRefresh) {
-                        // Sessiz yenilemede, eski filtre değerini korumaya çalış
                         categoryBranchFilter.value = previousFilterValue;
                     } else {
-                        // Manuel yenilemede, "Tüm Şubeler" olarak ayarla
                         categoryBranchFilter.value = 'all';
                     }
                     
