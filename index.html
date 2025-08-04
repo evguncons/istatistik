@@ -41,7 +41,7 @@
             gap: 8px;
         }
         .primary-button {
-            background-color: #6D28D9;
+            background-color: #d11079; /* YENİ RENK */
             color: white;
             font-weight: 600;
             border-radius: 12px;
@@ -53,7 +53,7 @@
             gap: 8px;
         }
         .primary-button:hover {
-            background-color: #5B21B6;
+            background-color: #b90e6b; /* YENİ RENK (KOYU) */
         }
         .period-select {
             border-radius: 12px;
@@ -64,8 +64,8 @@
         }
         .period-select:focus {
             outline: none;
-            border-color: #8b5cf6;
-            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.4);
+            border-color: #d11079; /* YENİ RENK */
+            box-shadow: 0 0 0 2px rgba(209, 16, 121, 0.4); /* YENİ RENK */
         }
         #loadingOverlay {
             position: fixed;
@@ -83,7 +83,7 @@
         }
         .spinner {
             border: 5px solid rgba(0, 0, 0, 0.1);
-            border-top: 5px solid #6D28D9;
+            border-top: 5px solid #d11079; /* YENİ RENK */
             border-radius: 50%;
             width: 50px;
             height: 50px;
@@ -94,11 +94,12 @@
             100% { transform: rotate(360deg); }
         }
         .kpi-value {
-            font-size: 2.5rem;
+            font-size: clamp(1.7rem, 4vw, 2.5rem); /* DÜZELTME: Yazı boyutu duyarlı hale getirildi */
             font-weight: 800;
-            color: #6D28D9;
+            color: #d11079; /* YENİ RENK */
             margin-top: auto;
             padding-top: 1rem;
+            overflow-wrap: break-word; /* DÜZELTME: Uzun sayıların taşmasını engeller */
         }
         /* DÜZELTİLMİŞ MODAL STİLLERİ */
         .modal {
@@ -437,7 +438,7 @@
                         datasets: [{
                             label: 'Toplam Ciro',
                             data: sortedData.map(item => item.totalCiro),
-                            backgroundColor: 'rgba(109, 40, 217, 0.8)',
+                            backgroundColor: 'rgba(209, 16, 121, 0.8)', // YENİ RENK
                             borderRadius: 8,
                         }]
                     },
@@ -473,7 +474,7 @@
                 const successfulSales = allCalledLeads.filter(sale => sale.result === 'Satışa Döndü').length;
                 const conversionRate = totalCalls > 0 ? (successfulSales / totalCalls) * 100 : 0;
 
-                conversionRateText.innerHTML = `Toplam <strong>${totalCalls}</strong> aramanın <strong>${successfulSales}</strong> tanesi satışa döndü. <br> Dönüşüm Oranı: <strong class="text-purple-600">${conversionRate.toFixed(2)}%</strong>`;
+                conversionRateText.innerHTML = `Toplam <strong>${totalCalls}</strong> aramanın <strong>${successfulSales}</strong> tanesi satışa döndü. <br> Dönüşüm Oranı: <strong style="color: #d11079;">${conversionRate.toFixed(2)}%</strong>`;
 
                 salesFunnelChart = new Chart(ctx, {
                     type: 'bar',
@@ -539,7 +540,7 @@
                     sortedCategories.forEach(item => {
                         listHtml += `<div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer" onclick="showCategoryDetails('${item.category.replace(/'/g, "\\'")}')">
                                         <span class="font-semibold text-gray-700">${item.category}</span>
-                                        <span class="text-sm font-bold text-purple-600 bg-purple-100 px-2 py-1 rounded-md">${item.count} Satış</span>
+                                        <span class="text-sm font-bold text-[#d11079] bg-[#d11079]/10 px-2 py-1 rounded-md">${item.count} Satış</span>
                                      </div>`;
                     });
                 } else {
@@ -565,9 +566,9 @@
 
                 modalCategoryName.textContent = categoryName;
                 modalCategoryDetails.innerHTML = `
-                    <p class="text-lg"><strong class="font-semibold text-gray-600">Toplam Satış Adedi:</strong> <span class="font-bold text-purple-600">${totalSalesCount} Adet</span></p>
-                    <p class="text-lg"><strong class="font-semibold text-gray-600">Toplam Ciro:</strong> <span class="font-bold text-purple-600">${formatCurrency(totalCategoryCiro)}</span></p>
-                    <p class="text-lg"><strong class="font-semibold text-gray-600">En Çok Satan Şube:</strong> <span class="font-bold text-purple-600">${mostSellingBranch[0]} (${mostSellingBranch[1]} Adet)</span></p>
+                    <p class="text-lg"><strong class="font-semibold text-gray-600">Toplam Satış Adedi:</strong> <span class="font-bold" style="color: #d11079;">${totalSalesCount} Adet</span></p>
+                    <p class="text-lg"><strong class="font-semibold text-gray-600">Toplam Ciro:</strong> <span class="font-bold" style="color: #d11079;">${formatCurrency(totalCategoryCiro)}</span></p>
+                    <p class="text-lg"><strong class="font-semibold text-gray-600">En Çok Satan Şube:</strong> <span class="font-bold" style="color: #d11079;">${mostSellingBranch[0]} (${mostSellingBranch[1]} Adet)</span></p>
                 `;
                 categoryDetailModal.style.display = 'flex';
             };
@@ -590,7 +591,7 @@
                 modalBranchDetails.innerHTML = `
                     <div class="grid grid-cols-2 gap-4 text-lg">
                         <p class="font-semibold text-gray-600">Toplam Ciro:</p>
-                        <p class="font-bold text-purple-600 text-right">${formatCurrency(totalCiro)}</p>
+                        <p class="font-bold text-right" style="color: #d11079;">${formatCurrency(totalCiro)}</p>
                         
                         <p class="font-semibold text-gray-600">Toplam Arama:</p>
                         <p class="font-bold text-blue-600 text-right">${totalCalls} adet</p>
@@ -619,13 +620,13 @@
                         datasets: [{
                             label: 'Toplam Ciro',
                             data: ciroData,
-                            backgroundColor: 'rgba(109, 40, 217, 0.1)',
-                            borderColor: '#6D28D9',
+                            backgroundColor: 'rgba(209, 16, 121, 0.1)', // YENİ RENK
+                            borderColor: '#d11079', // YENİ RENK
                             borderWidth: 3,
                             tension: 0.4,
                             fill: true,
                             pointBackgroundColor: '#ffffff',
-                            pointBorderColor: '#6D28D9',
+                            pointBorderColor: '#d11079', // YENİ RENK
                             pointRadius: 5,
                             pointHoverRadius: 7,
                             pointHoverBorderWidth: 3
