@@ -17,7 +17,6 @@
             font-family: 'Inter', sans-serif;
             background-color: #f4f7fe;
         }
-        /* DÜZELTME: Modal açıkken body scroll'u engellemek için */
         body.modal-open {
             overflow: hidden;
         }
@@ -116,6 +115,9 @@
             background-color: rgba(0,0,0,0.5);
             backdrop-filter: blur(5px);
             padding: 1rem;
+            overflow-y: auto; /* DÜZELTME: Modalın kendisi scroll edilebilir */
+            justify-content: center;
+            align-items: center;
         }
         .modal-content {
             background: #ffffff;
@@ -125,11 +127,10 @@
             width: 90%;
             max-width: 800px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-            position: relative; /* DÜZELTME */
-            margin: auto; /* DÜZELTME */
+            position: relative;
+            margin: auto;
             animation: fadeIn 0.3s ease-out;
             max-height: 90vh;
-            overflow-y: auto;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: scale(0.95); }
@@ -398,6 +399,9 @@
                     if (!isSilentRefresh) {
                         hideLoadingState();
                     }
+                } finally {
+                    // YENİ: Yükseklik gönderme fonksiyonu
+                    sendHeightToParent();
                 }
             }
 
@@ -720,12 +724,22 @@
             // --- YENİ MODAL KONTROL FONKSİYONLARI ---
             function openModal(modalElement) {
                 document.body.classList.add('modal-open');
-                modalElement.style.display = 'block';
+                modalElement.style.display = 'flex';
             }
 
             function closeModal(modalElement) {
                 modalElement.style.display = 'none';
                 document.body.classList.remove('modal-open');
+            }
+
+            // YENİ: Panel yüksekliğini Streamlit'e gönderme fonksiyonu
+            function sendHeightToParent() {
+                // Küçük bir gecikme ile yüksekliğin tam olarak hesaplanmasını bekle
+                setTimeout(() => {
+                    const height = document.body.scrollHeight;
+                    // '*' tüm hedeflere izin verir, güvenlik için Streamlit alan adınızı kullanabilirsiniz.
+                    window.parent.postMessage({ type: 'setHeight', height: height }, '*');
+                }, 250);
             }
 
             // --- OLAY DİNLEYİCİLERİ VE BAŞLATMA ---
@@ -764,6 +778,9 @@
                     console.log("Veriler otomatik olarak yenileniyor...");
                     fetchData(periodSelect.value, true);
                 }, 60000);
+
+                // YENİ: Pencere boyutu değiştiğinde yüksekliği tekrar gönder
+                window.addEventListener('resize', sendHeightToParent);
             };
             
             initialize();
