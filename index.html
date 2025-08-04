@@ -17,6 +17,10 @@
             font-family: 'Inter', sans-serif;
             background-color: #f4f7fe;
         }
+        /* DÜZELTME: Modal açıkken body scroll'u engellemek için */
+        body.modal-open {
+            overflow: hidden;
+        }
         .card {
             background-color: #ffffff;
             border-radius: 20px;
@@ -41,7 +45,7 @@
             gap: 8px;
         }
         .primary-button {
-            background-color: #d11079; /* YENİ RENK */
+            background-color: #d11079;
             color: white;
             font-weight: 600;
             border-radius: 12px;
@@ -53,7 +57,7 @@
             gap: 8px;
         }
         .primary-button:hover {
-            background-color: #b90e6b; /* YENİ RENK (KOYU) */
+            background-color: #b90e6b;
         }
         .period-select {
             border-radius: 12px;
@@ -64,8 +68,8 @@
         }
         .period-select:focus {
             outline: none;
-            border-color: #d11079; /* YENİ RENK */
-            box-shadow: 0 0 0 2px rgba(209, 16, 121, 0.4); /* YENİ RENK */
+            border-color: #d11079;
+            box-shadow: 0 0 0 2px rgba(209, 16, 121, 0.4);
         }
         #loadingOverlay {
             position: fixed;
@@ -77,13 +81,13 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 2000;
+            z-index: 9999;
             flex-direction: column;
             gap: 20px;
         }
         .spinner {
             border: 5px solid rgba(0, 0, 0, 0.1);
-            border-top: 5px solid #d11079; /* YENİ RENK */
+            border-top: 5px solid #d11079;
             border-radius: 50%;
             width: 50px;
             height: 50px;
@@ -94,14 +98,13 @@
             100% { transform: rotate(360deg); }
         }
         .kpi-value {
-            font-size: clamp(1.7rem, 4vw, 2.5rem); /* DÜZELTME: Yazı boyutu duyarlı hale getirildi */
+            font-size: clamp(1.7rem, 4vw, 2.5rem);
             font-weight: 800;
-            color: #d11079; /* YENİ RENK */
+            color: #d11079;
             margin-top: auto;
             padding-top: 1rem;
-            overflow-wrap: break-word; /* DÜZELTME: Uzun sayıların taşmasını engeller */
+            overflow-wrap: break-word;
         }
-        /* DÜZELTİLMİŞ MODAL STİLLERİ */
         .modal {
             display: none;
             position: fixed;
@@ -112,9 +115,7 @@
             height: 100%;
             background-color: rgba(0,0,0,0.5);
             backdrop-filter: blur(5px);
-            justify-content: center;
-            align-items: center;
-            padding: 1rem; /* İçeriğin kenarlara yapışmasını önler */
+            padding: 1rem;
         }
         .modal-content {
             background: #ffffff;
@@ -124,10 +125,11 @@
             width: 90%;
             max-width: 800px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-            position: relative;
+            position: relative; /* DÜZELTME */
+            margin: auto; /* DÜZELTME */
             animation: fadeIn 0.3s ease-out;
-            max-height: 90vh; /* Pencerenin ekrandan taşmasını engeller */
-            overflow-y: auto; /* Pencere içeriği uzunsa kaydırma çubuğu ekler */
+            max-height: 90vh;
+            overflow-y: auto;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: scale(0.95); }
@@ -156,7 +158,7 @@
 
     <div class="w-full max-w-7xl mx-auto">
         <header class="mb-8 text-center">
-            <div class="flex items-center justify-center gap-4">
+            <div class="flex items-center justify-center flex-wrap gap-4">
                 <img src="https://static.ticimax.cloud/32769/uploads/editoruploads/hedef-image/logo.png" alt="Hedef AVM Logo" class="h-12 md:h-16">
                 <h1 class="main-title text-2xl md:text-4xl font-extrabold">HEDEF AVM ONLİNE SATIŞ İSTATİSTİK</h1>
             </div>
@@ -170,7 +172,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V10zM15 10a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2a1 1 0 01-1-1v-4z" /></svg>
                     Dönem Seçimi
                 </p>
-                <div class="flex items-center gap-4 w-full md:w-auto">
+                <div class="flex items-center flex-wrap justify-end gap-4 w-full md:w-auto">
                     <select id="periodSelect" class="period-select"></select>
                     <button id="applyFilter" class="primary-button">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L13 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 019 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" /></svg>
@@ -223,8 +225,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 8v5z" /></svg>
                         Dönemin En Çok Satılan Kategorileri
                     </h2>
-                     <div class="flex items-center gap-4 ml-auto">
-                        <!-- YENİ: Şube Filtresi -->
+                     <div class="flex items-center flex-wrap justify-end gap-4 ml-auto">
                         <div class="flex items-center gap-2">
                             <label for="categoryBranchFilter" class="text-sm font-medium text-gray-600">Şube:</label>
                             <select id="categoryBranchFilter" class="period-select text-sm"></select>
@@ -438,7 +439,7 @@
                         datasets: [{
                             label: 'Toplam Ciro',
                             data: sortedData.map(item => item.totalCiro),
-                            backgroundColor: 'rgba(209, 16, 121, 0.8)', // YENİ RENK
+                            backgroundColor: 'rgba(209, 16, 121, 0.8)',
                             borderRadius: 8,
                         }]
                     },
@@ -551,6 +552,7 @@
             }
 
              window.showCategoryDetails = (categoryName) => {
+                openModal(categoryDetailModal);
                 const categorySales = allRawSalesDataGlobal.filter(sale => sale.result === 'Satışa Döndü' && sale.category === categoryName);
                 
                 const totalSalesCount = categorySales.length;
@@ -570,10 +572,10 @@
                     <p class="text-lg"><strong class="font-semibold text-gray-600">Toplam Ciro:</strong> <span class="font-bold" style="color: #d11079;">${formatCurrency(totalCategoryCiro)}</span></p>
                     <p class="text-lg"><strong class="font-semibold text-gray-600">En Çok Satan Şube:</strong> <span class="font-bold" style="color: #d11079;">${mostSellingBranch[0]} (${mostSellingBranch[1]} Adet)</span></p>
                 `;
-                categoryDetailModal.style.display = 'flex';
             };
             
             window.showBranchDetails = (branchName) => {
+                openModal(branchDetailModal);
                 const branchInfo = leaderboardDataGlobal.find(b => b.branch === branchName);
                 const totalCiro = branchInfo ? branchInfo.totalCiro : 0;
 
@@ -603,7 +605,6 @@
                         <p class="font-bold text-yellow-500 text-right">${conversionRate.toFixed(2)}%</p>
                     </div>
                 `;
-                branchDetailModal.style.display = 'flex';
             };
 
             function renderMonthlyTrendChart(data) {
@@ -620,13 +621,13 @@
                         datasets: [{
                             label: 'Toplam Ciro',
                             data: ciroData,
-                            backgroundColor: 'rgba(209, 16, 121, 0.1)', // YENİ RENK
-                            borderColor: '#d11079', // YENİ RENK
+                            backgroundColor: 'rgba(209, 16, 121, 0.1)',
+                            borderColor: '#d11079',
                             borderWidth: 3,
                             tension: 0.4,
                             fill: true,
                             pointBackgroundColor: '#ffffff',
-                            pointBorderColor: '#d11079', // YENİ RENK
+                            pointBorderColor: '#d11079',
                             pointRadius: 5,
                             pointHoverRadius: 7,
                             pointHoverBorderWidth: 3
@@ -691,7 +692,7 @@
             }
 
             async function fetchAllMonthlyData() {
-                monthlyTrendModal.style.display = 'flex';
+                openModal(monthlyTrendModal);
                 monthlyGrowthDetailElement.innerHTML = `<span class="text-gray-400">Aylık trend verileri yükleniyor...</span>`;
                 
                 try {
@@ -716,24 +717,35 @@
                 }
             }
 
+            // --- YENİ MODAL KONTROL FONKSİYONLARI ---
+            function openModal(modalElement) {
+                document.body.classList.add('modal-open');
+                modalElement.style.display = 'block';
+            }
+
+            function closeModal(modalElement) {
+                modalElement.style.display = 'none';
+                document.body.classList.remove('modal-open');
+            }
 
             // --- OLAY DİNLEYİCİLERİ VE BAŞLATMA ---
             document.getElementById('applyFilter').onclick = () => {
                 fetchData(periodSelect.value);
             };
             document.getElementById('showMonthlyTrend').onclick = fetchAllMonthlyData;
-            document.getElementById('closeCategoryModal').onclick = () => categoryDetailModal.style.display = 'none';
-            document.getElementById('closeMonthlyTrendModal').onclick = () => monthlyTrendModal.style.display = 'none';
-            document.getElementById('closeBranchModal').onclick = () => branchDetailModal.style.display = 'none';
+            
+            document.getElementById('closeCategoryModal').onclick = () => closeModal(categoryDetailModal);
+            document.getElementById('closeMonthlyTrendModal').onclick = () => closeModal(monthlyTrendModal);
+            document.getElementById('closeBranchModal').onclick = () => closeModal(branchDetailModal);
             
             categoryBranchFilter.addEventListener('change', () => {
                 renderMostSoldCategoriesList(categoryBranchFilter.value);
             });
             
             window.onclick = (event) => {
-                if (event.target == categoryDetailModal) categoryDetailModal.style.display = 'none';
-                if (event.target == monthlyTrendModal) monthlyTrendModal.style.display = 'none';
-                if (event.target == branchDetailModal) branchDetailModal.style.display = 'none';
+                if (event.target == categoryDetailModal) closeModal(categoryDetailModal);
+                if (event.target == monthlyTrendModal) closeModal(monthlyTrendModal);
+                if (event.target == branchDetailModal) closeModal(branchDetailModal);
             };
 
             const initialize = async () => {
