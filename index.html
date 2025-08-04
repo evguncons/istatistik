@@ -100,6 +100,7 @@
             margin-top: auto;
             padding-top: 1rem;
         }
+        /* DÜZELTİLMİŞ MODAL STİLLERİ */
         .modal {
             display: none;
             position: fixed;
@@ -108,11 +109,11 @@
             top: 0;
             width: 100%;
             height: 100%;
-            overflow: auto;
             background-color: rgba(0,0,0,0.5);
             backdrop-filter: blur(5px);
             justify-content: center;
             align-items: center;
+            padding: 1rem; /* İçeriğin kenarlara yapışmasını önler */
         }
         .modal-content {
             background: #ffffff;
@@ -124,6 +125,8 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
             position: relative;
             animation: fadeIn 0.3s ease-out;
+            max-height: 90vh; /* Pencerenin ekrandan taşmasını engeller */
+            overflow-y: auto; /* Pencere içeriği uzunsa kaydırma çubuğu ekler */
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: scale(0.95); }
@@ -293,7 +296,7 @@
             const branchDetailModal = document.getElementById('branchDetailModal');
             const modalBranchName = document.getElementById('modalBranchName');
             const modalBranchDetails = document.getElementById('modalBranchDetails');
-            const categoryBranchFilter = document.getElementById('categoryBranchFilter'); // YENİ
+            const categoryBranchFilter = document.getElementById('categoryBranchFilter');
 
             // --- TEMEL FONKSİYONLAR ---
             const setLoadingState = (message = "Veriler Yükleniyor...") => {
@@ -365,8 +368,8 @@
                     renderKPIs(allRawSalesDataGlobal, leaderboardDataGlobal);
                     renderBranchCiroChart(leaderboardDataGlobal);
                     renderSalesFunnelChart(allRawSalesDataGlobal);
-                    populateBranchFilter(leaderboardDataGlobal); // YENİ: Filtreyi doldur
-                    renderMostSoldCategoriesList(); // YENİ: Başlangıçta tüm şubeleri göster
+                    populateBranchFilter(leaderboardDataGlobal);
+                    renderMostSoldCategoriesList();
 
                     hideLoadingState();
                 } catch (error) {
@@ -477,9 +480,8 @@
                 });
             }
             
-            // YENİ: Şube filtresini dolduran fonksiyon
             function populateBranchFilter(leaderboardData) {
-                categoryBranchFilter.innerHTML = ''; // Mevcut seçenekleri temizle
+                categoryBranchFilter.innerHTML = '';
                 const allBranchesOption = new Option('Tüm Şubeler', 'all');
                 categoryBranchFilter.add(allBranchesOption);
 
@@ -489,11 +491,9 @@
                 });
             }
 
-            // GÜNCELLENDİ: Kategori listesini şubeye göre filtreleyecek şekilde güncellendi
             function renderMostSoldCategoriesList(selectedBranch = 'all') {
                 let dataToProcess = allRawSalesDataGlobal;
 
-                // Eğer belirli bir şube seçildiyse, veriyi filtrele
                 if (selectedBranch !== 'all') {
                     dataToProcess = allRawSalesDataGlobal.filter(sale => sale.branch === selectedBranch);
                 }
@@ -705,7 +705,6 @@
             document.getElementById('closeMonthlyTrendModal').onclick = () => monthlyTrendModal.style.display = 'none';
             document.getElementById('closeBranchModal').onclick = () => branchDetailModal.style.display = 'none';
             
-            // YENİ: Kategori şube filtresi için olay dinleyici
             categoryBranchFilter.addEventListener('change', () => {
                 renderMostSoldCategoriesList(categoryBranchFilter.value);
             });
