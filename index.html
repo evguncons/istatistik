@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HedefAVM Satış Paneli</title>
+    <title>HedefAVM Gelişmiş Satış Analiz Paneli</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js CDN -->
@@ -23,6 +23,8 @@
             padding: 24px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
             transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
         }
         .card:hover {
             transform: translateY(-5px);
@@ -34,68 +36,25 @@
         .card-title {
             color: #4a5568;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .primary-button {
-            background-color: #6D28D9; /* Deep Purple */
+            background-color: #6D28D9;
             color: white;
             font-weight: 600;
             border-radius: 12px;
             padding: 12px 24px;
             transition: background-color 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         .primary-button:hover {
             background-color: #5B21B6;
         }
-        .period-select {
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            padding: 12px;
-            background-color: #fff;
-        }
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.5);
-            backdrop-filter: blur(5px);
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background: #ffffff;
-            color: #1a202c;
-            padding: 30px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 500px; /* Adjusted width for branch details */
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-            position: relative;
-            animation: fadeIn 0.3s ease-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        .close-button {
-            color: #718096;
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            font-size: 32px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-        .close-button:hover {
-            color: #1a202c;
-        }
-        /* Yükleniyor Ekranı */
         #loadingOverlay {
             position: fixed;
             top: 0;
@@ -122,6 +81,55 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .kpi-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #6D28D9;
+            margin-top: auto;
+            padding-top: 1rem;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: #ffffff;
+            color: #1a202c;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .close-button {
+            color: #718096;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .close-button:hover {
+            color: #1a202c;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -132,56 +140,76 @@
 
     <div class="w-full max-w-7xl mx-auto">
         <header class="mb-8">
-            <div class="flex items-center gap-4">
-                <img src="https://static.ticimax.cloud/32769/uploads/editoruploads/hedef-image/logo.png" alt="Hedef AVM Logo" class="h-10 sm:h-12 w-auto">
-                <h1 class="main-title text-2xl sm:text-3xl lg:text-4xl font-extrabold">Hedef AVM Online Satış İstatistik</h1>
-            </div>
-            <p id="currentPeriodDisplay" class="text-gray-500 mt-2">Lütfen bir dönem seçin</p>
+            <h1 class="main-title text-4xl font-extrabold">Gelişmiş Satış Analiz Paneli</h1>
+            <p id="currentPeriodDisplay" class="text-gray-500 mt-1">Lütfen bir dönem seçin</p>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <!-- Filtreler Kartı -->
-            <div class="card lg:col-span-3 flex flex-col md:flex-row items-center justify-between gap-4">
-                <p class="card-title text-lg">Dönem Seçimi</p>
+            <div class="card md:col-span-2 lg:col-span-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                <p class="card-title text-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V10zM15 10a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2a1 1 0 01-1-1v-4z" /></svg>
+                    Dönem Seçimi
+                </p>
                 <div class="flex items-center gap-4 w-full md:w-auto">
                     <select id="periodSelect" class="period-select w-full md:w-auto"></select>
-                    <button id="applyFilter" class="primary-button">Getir</button>
+                    <button id="applyFilter" class="primary-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L13 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 019 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" /></svg>
+                        Getir
+                    </button>
                 </div>
             </div>
 
-            <!-- Toplam Ciro Kartı -->
-            <div class="card lg:col-span-2">
-                <h2 class="card-title mb-4">Dönem Toplam Ciro</h2>
-                <p id="totalCiroValue" class="text-4xl sm:text-5xl font-extrabold text-purple-700">0 TL</p>
+            <!-- KPI KARTLARI BÖLÜMÜ -->
+            <div class="card">
+                <h2 class="card-title">Toplam Ciro</h2>
+                <p id="totalCiroValue" class="kpi-value">0 TL</p>
             </div>
-
-            <!-- Aylık Trend Kartı -->
-            <div class="card flex flex-col justify-center items-center text-center">
-                 <h2 class="card-title mb-4">Satış Performansı</h2>
-                 <button id="showMonthlyTrend" class="primary-button w-full">Aylık Trendi Görüntüle</button>
+            <div class="card">
+                <h2 class="card-title">Başarılı Satış</h2>
+                <p id="totalSalesCount" class="kpi-value">0</p>
+            </div>
+            <div class="card">
+                <h2 class="card-title">Ort. Satış Değeri</h2>
+                <p id="averageSaleValue" class="kpi-value">0 TL</p>
+            </div>
+            <div class="card">
+                <h2 class="card-title">Ayın Şubesi</h2>
+                <p id="bestPerformingBranch" class="kpi-value text-2xl">-</p>
             </div>
             
-            <div id="errorMessage" class="card lg:col-span-3 text-red-500 hidden"></div>
+            <div id="errorMessage" class="card md:col-span-2 lg:col-span-4 text-red-500 hidden"></div>
 
             <!-- Şubeler Ciro Karşılaştırması Kartı -->
-            <div class="card lg:col-span-3">
-                <h2 class="card-title mb-4">Şubeler Ciro Karşılaştırması</h2>
-                <p class="text-sm text-gray-500 mb-4">Detayları görmek için şube ismine tıklayın.</p>
-                <div class="relative h-80 md:h-96 w-full">
+            <div class="card lg:col-span-2 md:col-span-2">
+                <h2 class="card-title">Şubeler Ciro Karşılaştırması</h2>
+                <div class="relative h-96 w-full mt-4">
                     <canvas id="branchCiroChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Satış Hunisi Analizi Kartı -->
+            <div class="card lg:col-span-2 md:col-span-2">
+                <h2 class="card-title">Satış Hunisi Analizi</h2>
+                <p id="conversionRateText" class="text-sm text-gray-500 mb-2">Dönüşüm oranı hesaplanıyor...</p>
+                <div class="relative h-96 w-full mt-4">
+                    <canvas id="salesFunnelChart"></canvas>
                 </div>
             </div>
 
             <!-- En Çok Satılan Kategoriler Kartı -->
-            <div class="card lg:col-span-3">
-                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
-                    <h2 class="card-title">Bu Ay En Çok Satılan Kategoriler</h2>
-                    <div class="flex items-center gap-2 w-full sm:w-auto">
-                        <label for="branchFilterSelect" class="text-sm font-medium text-gray-600">Mağaza:</label>
-                        <select id="branchFilterSelect" class="period-select w-full sm:w-64"></select>
-                    </div>
+            <div class="card lg:col-span-4">
+                 <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                    <h2 class="card-title text-xl">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 8v5z" /></svg>
+                        Dönemin En Çok Satılan Kategorileri
+                    </h2>
+                     <button id="showMonthlyTrend" class="primary-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                        Aylık Trendi Görüntüle
+                    </button>
                 </div>
-                <div id="mostSoldCategoriesList" class="space-y-3">
+                <div id="mostSoldCategoriesList" class="space-y-3 mt-4">
                     <p class="text-gray-400">Veri Yükleniyor...</p>
                 </div>
             </div>
@@ -190,7 +218,7 @@
 
     <!-- Kategori Detay Modal'ı -->
     <div id="categoryDetailModal" class="modal">
-        <div class="modal-content !max-w-screen-md">
+        <div class="modal-content">
             <span class="close-button" id="closeCategoryModal">&times;</span>
             <h2 id="modalCategoryName" class="text-3xl font-bold mb-6"></h2>
             <div id="modalCategoryDetails" class="space-y-3"></div>
@@ -199,7 +227,7 @@
 
     <!-- Aylık Ciro Trendi Modal'ı -->
     <div id="monthlyTrendModal" class="modal">
-        <div class="modal-content !max-w-screen-lg">
+        <div class="modal-content">
             <span class="close-button" id="closeMonthlyTrendModal">&times;</span>
             <h2 class="text-3xl font-bold mb-2">Aylık Ciro Trendi</h2>
             <p id="monthlyGrowthDetail" class="text-gray-500 mb-6"></p>
@@ -212,7 +240,7 @@
     <!-- YENİ: Şube Detay Modal'ı -->
     <div id="branchDetailModal" class="modal">
         <div class="modal-content">
-            <span class="close-button" id="closeBranchDetailModal">&times;</span>
+            <span class="close-button" id="closeBranchModal">&times;</span>
             <h2 id="modalBranchName" class="text-3xl font-bold mb-6"></h2>
             <div id="modalBranchDetails" class="space-y-4"></div>
         </div>
@@ -221,10 +249,9 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- GLOBAL DEĞİŞKENLER ---
-            let monthlyTrendChart;
-            let branchCiroChart;
+            let branchCiroChart, salesFunnelChart, monthlyTrendChart;
             let allRawSalesDataGlobal = [];
-            let leaderboardDataGlobal = [];
+            let leaderboardDataGlobal = []; // Şube verilerini globalde tutmak için
             
             const GOOGLE_APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxSquBU2QkyB79SkPSPHPd7BKJfiJZB3su85LosK7YBcRe4vdrrAAczgp3LOuCC76Xp7A/exec';
 
@@ -233,61 +260,45 @@
             const currentPeriodDisplay = document.getElementById('currentPeriodDisplay');
             const errorMessage = document.getElementById('errorMessage');
             const periodSelect = document.getElementById('periodSelect');
-            const branchFilterSelect = document.getElementById('branchFilterSelect');
             const totalCiroValueElement = document.getElementById('totalCiroValue');
+            const totalSalesCountElement = document.getElementById('totalSalesCount');
+            const averageSaleValueElement = document.getElementById('averageSaleValue');
+            const bestPerformingBranchElement = document.getElementById('bestPerformingBranch');
             const mostSoldCategoriesListElement = document.getElementById('mostSoldCategoriesList');
+            const conversionRateText = document.getElementById('conversionRateText');
             const categoryDetailModal = document.getElementById('categoryDetailModal');
             const monthlyTrendModal = document.getElementById('monthlyTrendModal');
-            const branchDetailModal = document.getElementById('branchDetailModal'); // Yeni
             const modalCategoryName = document.getElementById('modalCategoryName');
             const modalCategoryDetails = document.getElementById('modalCategoryDetails');
-            const modalBranchName = document.getElementById('modalBranchName'); // Yeni
-            const modalBranchDetails = document.getElementById('modalBranchDetails'); // Yeni
             const monthlyGrowthDetailElement = document.getElementById('monthlyGrowthDetail');
+            // YENİ: Şube modal elementleri
+            const branchDetailModal = document.getElementById('branchDetailModal');
+            const modalBranchName = document.getElementById('modalBranchName');
+            const modalBranchDetails = document.getElementById('modalBranchDetails');
 
             // --- TEMEL FONKSİYONLAR ---
-
             const setLoadingState = (message = "Veriler Yükleniyor...") => {
                 errorMessage.classList.add('hidden');
-                errorMessage.textContent = '';
+                if (branchCiroChart) branchCiroChart.destroy(); 
+                if (salesFunnelChart) salesFunnelChart.destroy();
                 if (monthlyTrendChart) monthlyTrendChart.destroy();
-                if (branchCiroChart) branchCiroChart.destroy();
-                totalCiroValueElement.textContent = 'Hesaplanıyor...';
+                
+                totalCiroValueElement.textContent = '...';
+                totalSalesCountElement.textContent = '...';
+                averageSaleValueElement.textContent = '...';
+                bestPerformingBranchElement.textContent = '...';
                 mostSoldCategoriesListElement.innerHTML = `<p class="text-gray-400">Yükleniyor...</p>`;
+                conversionRateText.textContent = 'Dönüşüm oranı hesaplanıyor...';
+
                 loadingOverlay.querySelector('p').textContent = message;
                 loadingOverlay.style.display = 'flex';
             };
 
-            const hideLoadingState = () => {
-                loadingOverlay.style.display = 'none';
-            };
+            const hideLoadingState = () => loadingOverlay.style.display = 'none';
             
-            const formatValue = (value, criteria) => {
-                value = value === undefined || value === null ? 0 : value;
-                if (criteria === 'totalCiro' || criteria === 'averageCiro') {
-                    return value.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
-                }
-                if (criteria === 'salesRate') {
-                    return `%${value.toFixed(2)}`;
-                }
-                return `${value} Adet`;
-            };
-
-            const parseCiroClient = (value) => {
-                if (value === null || value === undefined) return 0;
-                if (typeof value === 'number') return value;
-                
-                let cleaned = String(value).replace(/[^0-9,.]/g, "");
-                
-                if (cleaned.includes('.') && cleaned.includes(',')) {
-                    cleaned = cleaned.replace(/\./g, '');
-                }
-                cleaned = cleaned.replace(',', '.');
-                
-                const number = parseFloat(cleaned);
-                return isNaN(number) ? 0 : number;
-            };
-
+            const formatCurrency = (value) => (value || 0).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+            
+            // --- VERİ ÇEKME VE İŞLEME ---
             async function fetchAvailablePeriods() {
                 try {
                     const response = await fetch(`${GOOGLE_APPS_SCRIPT_WEB_APP_URL}?action=getAvailablePeriods&t=${new Date().getTime()}`);
@@ -295,13 +306,7 @@
                     const data = await response.json();
                     if (data.error) throw new Error(data.error);
 
-                    let periods = data.periods || [];
-                    // "sayfa6" gibi istenmeyen sayfaları filtrele
-                    periods = periods.filter(period => period.toLowerCase() !== 'sayfa6');
-
-                    const currentSelected = periodSelect.value;
-                    periodSelect.innerHTML = '';
-                    
+                    const periods = data.periods || [];
                     const monthOrder = ['OCAK', 'ŞUBAT', 'MART', 'NİSAN', 'MAYIS', 'HAZİRAN', 'TEMMUZ', 'AĞUSTOS', 'EYLÜL', 'EKİM', 'KASIM', 'ARALIK'];
                     periods.sort((a, b) => {
                         const [monthA, yearA] = a.split(' ');
@@ -310,30 +315,22 @@
                         return monthOrder.indexOf(monthB.toUpperCase()) - monthOrder.indexOf(monthA.toUpperCase());
                     }).forEach(period => periodSelect.add(new Option(period, period)));
                     
-                    if ([...periodSelect.options].some(opt => opt.value === currentSelected)) {
-                        periodSelect.value = currentSelected;
-                    }
-                    
                     return periodSelect.value;
-
                 } catch (error) {
-                    console.error(`Dönemler yüklenemedi: ${error.message}`);
-                    errorMessage.textContent = `Dönemler yüklenirken bir hata oluştu: ${error.message}. Lütfen Apps Script URL'nizin doğru olduğundan ve dağıtım ayarlarının 'Herkes' için yapıldığından emin olun.`;
+                    errorMessage.textContent = `Dönemler yüklenemedi: ${error.message}.`;
                     errorMessage.classList.remove('hidden');
                     return null;
                 }
             }
             
-            async function fetchData(selectedPeriod, isSilentRefresh = false) {
+            async function fetchData(selectedPeriod) {
                 if (!selectedPeriod) {
                     errorMessage.textContent = "Lütfen bir dönem seçin.";
                     errorMessage.classList.remove('hidden');
                     hideLoadingState();
                     return;
                 }
-                if (!isSilentRefresh) {
-                   setLoadingState(`'${selectedPeriod}' verileri yükleniyor...`);
-                }
+                setLoadingState(`'${selectedPeriod}' verileri yükleniyor...`);
                 currentPeriodDisplay.textContent = `${selectedPeriod} Dönemi Analizi`;
 
                 try {
@@ -343,51 +340,212 @@
                     const data = await response.json();
                     if(data.error) throw new Error(data.error);
 
-                    const totalCiro = (data.leaderboard || []).reduce((sum, item) => sum + parseCiroClient(item.totalCiro), 0);
-                    totalCiroValueElement.textContent = formatValue(totalCiro, 'totalCiro');
-                    
                     allRawSalesDataGlobal = data.rawSales || [];
-                    leaderboardDataGlobal = data.leaderboard || [];
-
-                    populateBranchFilter(leaderboardDataGlobal);
-                    renderMostSoldCategoriesList(allRawSalesDataGlobal);
+                    leaderboardDataGlobal = data.leaderboard || []; // Veriyi global değişkene ata
+                    
+                    renderKPIs(allRawSalesDataGlobal, leaderboardDataGlobal);
                     renderBranchCiroChart(leaderboardDataGlobal);
+                    renderSalesFunnelChart(allRawSalesDataGlobal);
+                    renderMostSoldCategoriesList(allRawSalesDataGlobal);
 
                     hideLoadingState();
                 } catch (error) {
-                    errorMessage.textContent = `Veriler yüklenemedi: ${error.message}. Sayfa adının ve E-Tablo başlıklarının doğru olduğundan emin olun.`;
+                    errorMessage.textContent = `Veriler yüklenemedi: ${error.message}.`;
                     errorMessage.classList.remove('hidden');
                     hideLoadingState();
                 }
             }
 
-            async function fetchAllMonthlyData() {
-                monthlyTrendModal.style.display = 'flex';
-                monthlyGrowthDetailElement.innerHTML = `<span class="text-gray-400">Aylık trend verileri yükleniyor...</span>`;
+            // --- RENDER FONKSİYONLARI ---
+            function renderKPIs(rawSalesData, leaderboardData) {
+                const successfulSales = rawSalesData.filter(sale => sale.result === 'Satışa Döndü');
+                const totalSalesCount = successfulSales.length;
+                const totalCiro = leaderboardData.reduce((sum, branch) => sum + branch.totalCiro, 0);
+                const averageSaleValue = totalSalesCount > 0 ? totalCiro / totalSalesCount : 0;
                 
-                try {
-                    const url = `${GOOGLE_APPS_SCRIPT_WEB_APP_URL}?action=getMonthlyTrendData&t=${new Date().getTime()}`;
-                    const response = await fetch(url);
-                    if (!response.ok) throw new Error(`Sunucu hatası: ${response.status}`);
-                    let data = await response.json(); // let olarak değiştirildi
-                    if (data.error) throw new Error(data.error);
+                const sortedBranches = [...leaderboardData].sort((a, b) => b.totalCiro - a.totalCiro);
+                const bestBranch = sortedBranches.length > 0 ? sortedBranches[0].branch : "-";
 
-                    // Aylık trend verilerinden de "sayfa6"yı filtrele
-                    data = data.filter(item => item.period.toLowerCase() !== 'sayfa6');
+                totalCiroValueElement.textContent = formatCurrency(totalCiro);
+                totalSalesCountElement.textContent = totalSalesCount;
+                averageSaleValueElement.textContent = formatCurrency(averageSaleValue);
+                bestPerformingBranchElement.textContent = bestBranch;
+            }
 
-                    const monthOrder = ['OCAK', 'ŞUBAT', 'MART', 'NİSAN', 'MAYIS', 'HAZİRAN', 'TEMMUZ', 'AĞUSTOS', 'EYLÜL', 'EKİM', 'KASIM', 'ARALIK'];
-                    data.sort((a,b) => {
-                        const [monthA, yearA] = a.period.split(' ');
-                        const [monthB, yearB] = b.period.split(' ');
-                        if (parseInt(yearA) !== parseInt(yearB)) return parseInt(yearA) - parseInt(yearB);
-                        return monthOrder.indexOf(monthA.toUpperCase()) - monthOrder.indexOf(monthB.toUpperCase());
-                    });
-                    renderMonthlyTrendChart(data);
-                } catch (error) {
-                     monthlyGrowthDetailElement.innerHTML = `<span class="text-red-500">Trend verileri yüklenemedi: ${error.message}</span>`;
-                }
+            function renderBranchCiroChart(leaderboardData) {
+                const ctx = document.getElementById('branchCiroChart').getContext('2d');
+                if (branchCiroChart) branchCiroChart.destroy();
+
+                const sortedData = [...leaderboardData].sort((a, b) => b.totalCiro - a.totalCiro);
+                
+                const chartOnClick = (event) => {
+                    const points = branchCiroChart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
+                    if (points.length) {
+                        const firstPoint = points[0];
+                        const label = branchCiroChart.data.labels[firstPoint.index];
+                        showBranchDetails(label);
+                    }
+                };
+
+                branchCiroChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: sortedData.map(item => item.branch),
+                        datasets: [{
+                            label: 'Toplam Ciro',
+                            data: sortedData.map(item => item.totalCiro),
+                            backgroundColor: 'rgba(109, 40, 217, 0.8)',
+                            borderRadius: 8,
+                        }]
+                    },
+                    options: {
+                        onClick: chartOnClick,
+                        indexAxis: 'y', 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        plugins: { 
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => `Ciro: ${formatCurrency(context.parsed.x)}`
+                                }
+                            }
+                        },
+                        scales: {
+                             x: { ticks: { callback: (value) => (value/1000) + 'k ₺' } },
+                        }
+                    }
+                });
+            }
+
+            function renderSalesFunnelChart(rawSalesData) {
+                const ctx = document.getElementById('salesFunnelChart').getContext('2d');
+                if (salesFunnelChart) salesFunnelChart.destroy();
+
+                const allCalledLeads = rawSalesData.filter(sale => {
+                    return sale.durum && String(sale.durum).toLowerCase().trim() === 'arandı';
+                });
+                const totalCalls = allCalledLeads.length;
+                
+                const successfulSales = allCalledLeads.filter(sale => sale.result === 'Satışa Döndü').length;
+                const conversionRate = totalCalls > 0 ? (successfulSales / totalCalls) * 100 : 0;
+
+                conversionRateText.innerHTML = `Toplam <strong>${totalCalls}</strong> aramanın <strong>${successfulSales}</strong> tanesi satışa döndü. <br> Dönüşüm Oranı: <strong class="text-purple-600">${conversionRate.toFixed(2)}%</strong>`;
+
+                salesFunnelChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Başarılı Satış', 'Toplam Arama'],
+                        datasets: [{
+                            label: 'Adet',
+                            data: [successfulSales, totalCalls],
+                            backgroundColor: ['#4ade80', '#60a5fa'],
+                            borderRadius: 8,
+                            barPercentage: 0.5
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { beginAtZero: true, grid: { display: false } },
+                            y: { grid: { display: false } }
+                        }
+                    }
+                });
             }
             
+            function renderMostSoldCategoriesList(rawSalesData) {
+                const categorySalesDetails = {};
+                rawSalesData.forEach(sale => {
+                    const categoryName = String(sale.category || '').trim();
+                    
+                    if (sale.result === 'Satışa Döndü' && categoryName.length > 0) {
+                        if (!categorySalesDetails[categoryName]) {
+                            categorySalesDetails[categoryName] = { count: 0 };
+                        }
+                        categorySalesDetails[categoryName].count++;
+                    }
+                });
+
+                const sortedCategories = Object.entries(categorySalesDetails)
+                    .map(([category, details]) => ({ category, ...details }))
+                    .sort((a, b) => b.count - a.count);
+
+                let listHtml = '';
+                if (sortedCategories.length > 0) {
+                    sortedCategories.forEach(item => {
+                        listHtml += `<div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer" onclick="showCategoryDetails('${item.category.replace(/'/g, "\\'")}')">
+                                        <span class="font-semibold text-gray-700">${item.category}</span>
+                                        <span class="text-sm font-bold text-purple-600 bg-purple-100 px-2 py-1 rounded-md">${item.count} Satış</span>
+                                     </div>`;
+                    });
+                } else {
+                    listHtml = `<p class="text-gray-400">Bu dönem için satışa dönen kategori verisi bulunamadı.</p>`;
+                }
+                
+                mostSoldCategoriesListElement.innerHTML = listHtml;
+            }
+
+             window.showCategoryDetails = (categoryName) => {
+                const categorySales = allRawSalesDataGlobal.filter(sale => sale.result === 'Satışa Döndü' && sale.category === categoryName);
+                
+                const totalSalesCount = categorySales.length;
+                const totalCategoryCiro = categorySales.reduce((sum, sale) => sum + sale.tutar, 0);
+
+                const branchSales = categorySales.reduce((acc, sale) => {
+                    const branchName = sale.branch || 'Bilinmeyen';
+                    acc[branchName] = (acc[branchName] || 0) + 1;
+                    return acc;
+                }, {});
+
+                const mostSellingBranch = Object.entries(branchSales).sort((a,b) => b[1] - a[1])[0] || ['Veri Yok', 0];
+
+                modalCategoryName.textContent = categoryName;
+                modalCategoryDetails.innerHTML = `
+                    <p class="text-lg"><strong class="font-semibold text-gray-600">Toplam Satış Adedi:</strong> <span class="font-bold text-purple-600">${totalSalesCount} Adet</span></p>
+                    <p class="text-lg"><strong class="font-semibold text-gray-600">Toplam Ciro:</strong> <span class="font-bold text-purple-600">${formatCurrency(totalCategoryCiro)}</span></p>
+                    <p class="text-lg"><strong class="font-semibold text-gray-600">En Çok Satan Şube:</strong> <span class="font-bold text-purple-600">${mostSellingBranch[0]} (${mostSellingBranch[1]} Adet)</span></p>
+                `;
+                categoryDetailModal.style.display = 'flex';
+            };
+            
+            // YENİ: Şube detaylarını gösteren fonksiyon
+            window.showBranchDetails = (branchName) => {
+                const branchInfo = leaderboardDataGlobal.find(b => b.branch === branchName);
+                const totalCiro = branchInfo ? branchInfo.totalCiro : 0;
+
+                const branchRawData = allRawSalesDataGlobal.filter(sale => sale.branch === branchName);
+                
+                const totalCalls = branchRawData.filter(sale => 
+                    sale.durum && String(sale.durum).toLowerCase().trim() === 'arandı'
+                ).length;
+
+                const successfulSales = branchRawData.filter(sale => sale.result === 'Satışa Döndü').length;
+                
+                const conversionRate = totalCalls > 0 ? (successfulSales / totalCalls) * 100 : 0;
+
+                modalBranchName.textContent = `${branchName} Performansı`;
+                modalBranchDetails.innerHTML = `
+                    <div class="grid grid-cols-2 gap-4 text-lg">
+                        <p class="font-semibold text-gray-600">Toplam Ciro:</p>
+                        <p class="font-bold text-purple-600 text-right">${formatCurrency(totalCiro)}</p>
+                        
+                        <p class="font-semibold text-gray-600">Toplam Arama:</p>
+                        <p class="font-bold text-blue-600 text-right">${totalCalls} adet</p>
+
+                        <p class="font-semibold text-gray-600">Başarılı Satış:</p>
+                        <p class="font-bold text-green-600 text-right">${successfulSales} adet</p>
+
+                        <p class="font-semibold text-gray-600">Dönüşüm Oranı:</p>
+                        <p class="font-bold text-yellow-500 text-right">${conversionRate.toFixed(2)}%</p>
+                    </div>
+                `;
+                branchDetailModal.style.display = 'flex';
+            };
+
             function renderMonthlyTrendChart(data) {
                 const ctx = document.getElementById('monthlyTrendChart').getContext('2d');
                 if (monthlyTrendChart) monthlyTrendChart.destroy();
@@ -426,7 +584,7 @@
                                     label: (context) => {
                                         const currentIndex = context.dataIndex;
                                         const currentCiro = context.parsed.y;
-                                        let tooltipText = [`Ciro: ${formatValue(currentCiro, 'totalCiro')}`];
+                                        let tooltipText = [`Ciro: ${formatCurrency(currentCiro)}`];
 
                                         if (currentIndex > 0) {
                                             const prevCiro = data[currentIndex - 1].totalCiro;
@@ -455,7 +613,7 @@
                 if (data.length > 0) {
                     const lastMonthIndex = data.length - 1;
                     const lastMonthData = data[lastMonthIndex];
-                    let detailText = `${lastMonthData.period}: ${formatValue(lastMonthData.totalCiro, 'totalCiro')}`;
+                    let detailText = `${lastMonthData.period}: ${formatCurrency(lastMonthData.totalCiro)}`;
                     
                     if (lastMonthIndex > 0) {
                         const prevCiro = data[lastMonthIndex - 1].totalCiro;
@@ -471,205 +629,47 @@
                     monthlyGrowthDetailElement.innerHTML = `<span class="text-gray-400">Veri Yok</span>`;
                 }
             }
-            
-            function renderBranchCiroChart(leaderboardData) {
-                const ctx = document.getElementById('branchCiroChart').getContext('2d');
-                if (branchCiroChart) branchCiroChart.destroy();
 
-                const sortedData = [...leaderboardData].sort((a, b) => b.totalCiro - a.totalCiro);
+            async function fetchAllMonthlyData() {
+                monthlyTrendModal.style.display = 'flex';
+                monthlyGrowthDetailElement.innerHTML = `<span class="text-gray-400">Aylık trend verileri yükleniyor...</span>`;
+                
+                try {
+                    const url = `${GOOGLE_APPS_SCRIPT_WEB_APP_URL}?action=getMonthlyTrendData&t=${new Date().getTime()}`;
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`Sunucu hatası: ${response.status}`);
+                    const data = await response.json();
+                    if (data.error) throw new Error(data.error);
 
-                const labels = sortedData.map(item => item.branch);
-                const ciroData = sortedData.map(item => item.totalCiro);
-
-                branchCiroChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Toplam Ciro',
-                            data: ciroData,
-                            backgroundColor: 'rgba(109, 40, 217, 0.8)',
-                            borderColor: '#6D28D9',
-                            borderWidth: 1,
-                            borderRadius: 8,
-                        }]
-                    },
-                    options: {
-                        indexAxis: 'y',
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        onHover: (event, chartElement) => {
-                             event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
-                        },
-                        onClick: (event, elements) => {
-                            if (elements.length > 0) {
-                                const chartElement = elements[0];
-                                const index = chartElement.index;
-                                const branchName = branchCiroChart.data.labels[index];
-                                showBranchDetails(branchName);
-                            }
-                        },
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                callbacks: {
-                                    label: (context) => `Ciro: ${formatValue(context.parsed.x, 'totalCiro')}`
-                                }
-                            }
-                        },
-                        scales: {
-                             x: {
-                                beginAtZero: true,
-                                ticks: { color: '#4a5568', callback: (value) => (value/1000) + 'k ₺' },
-                                grid: { color: '#e2e8f0' }
-                            },
-                            y: {
-                                ticks: { color: '#4a5568' },
-                                grid: { display: false }
-                            }
-                        }
-                    }
-                });
-            }
-
-            function populateBranchFilter(leaderboardData) {
-                const currentSelection = branchFilterSelect.value;
-                branchFilterSelect.innerHTML = '<option value="all">Tüm Mağazalar</option>';
-                const branchNames = new Set(leaderboardData.map(item => item.branch));
-                branchNames.forEach(branch => {
-                    if (branch) {
-                        const option = new Option(branch, branch);
-                        branchFilterSelect.add(option);
-                    }
-                });
-                branchFilterSelect.value = currentSelection || 'all';
-            }
-
-            function renderMostSoldCategoriesList(rawSalesData, selectedBranch = 'all') {
-                const filteredSalesData = selectedBranch === 'all'
-                    ? rawSalesData
-                    : rawSalesData.filter(sale => sale.branch === selectedBranch);
-
-                const categorySalesDetails = {};
-                filteredSalesData.forEach(sale => {
-                    const categoryName = String(sale.category || '').trim();
-                    const result = String(sale.result || '').trim();
-                    
-                    if (result === 'Satışa Döndü' && categoryName.length > 0) {
-                        if (!categorySalesDetails[categoryName]) {
-                            categorySalesDetails[categoryName] = { count: 0 };
-                        }
-                        categorySalesDetails[categoryName].count++;
-                    }
-                });
-
-                const sortedCategories = Object.entries(categorySalesDetails)
-                    .map(([category, details]) => ({ category, ...details }))
-                    .sort((a, b) => b.count - a.count);
-
-                let listHtml = '';
-                if (sortedCategories.length > 0) {
-                    sortedCategories.forEach(item => {
-                        listHtml += `<div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer" onclick="showCategoryDetails('${item.category.replace(/'/g, "\\'")}')">
-                                        <span class="font-semibold text-gray-700">${item.category}</span>
-                                        <span class="text-sm font-bold text-purple-600 bg-purple-100 px-2 py-1 rounded-md">${item.count} Satış</span>
-                                     </div>`;
+                    const monthOrder = ['OCAK', 'ŞUBAT', 'MART', 'NİSAN', 'MAYIS', 'HAZİRAN', 'TEMMUZ', 'AĞUSTOS', 'EYLÜL', 'EKİM', 'KASIM', 'ARALIK'];
+                    data.sort((a,b) => {
+                        const [monthA, yearA] = a.period.split(' ');
+                        const [monthB, yearB] = b.period.split(' ');
+                        if (parseInt(yearA) !== parseInt(yearB)) return parseInt(yearB) - parseInt(yearA);
+                        return monthOrder.indexOf(monthA.toUpperCase()) - monthOrder.indexOf(monthB.toUpperCase());
                     });
-                } else {
-                    listHtml = `<p class="text-gray-400">Bu filtre için satışa dönen kategori verisi bulunamadı.</p>`;
+                    
+                    renderMonthlyTrendChart(data);
+
+                } catch (error) {
+                     monthlyGrowthDetailElement.innerHTML = `<span class="text-red-500">Trend verileri yüklenemedi: ${error.message}</span>`;
                 }
-                
-                mostSoldCategoriesListElement.innerHTML = listHtml;
             }
 
-            window.showCategoryDetails = (categoryName) => {
-                const categorySales = allRawSalesDataGlobal.filter(sale => sale.result === 'Satışa Döndü' && sale.category === categoryName);
-                
-                const totalSalesCount = categorySales.length;
-                const totalCategoryCiro = categorySales.reduce((sum, sale) => sum + parseCiroClient(sale.tutar), 0);
-
-                const branchSales = categorySales.reduce((acc, sale) => {
-                    const branchName = sale.branch || 'Bilinmeyen';
-                    acc[branchName] = (acc[branchName] || 0) + 1;
-                    return acc;
-                }, {});
-
-                const mostSellingBranch = Object.entries(branchSales).sort((a,b) => b[1] - a[1])[0] || ['Veri Yok', 0];
-
-                modalCategoryName.textContent = categoryName;
-                modalCategoryDetails.innerHTML = `
-                    <p class="text-lg"><strong class="font-semibold text-gray-600">Toplam Satış Adedi:</strong> <span class="font-bold text-purple-600">${formatValue(totalSalesCount)}</span></p>
-                    <p class="text-lg"><strong class="font-semibold text-gray-600">Toplam Ciro:</strong> <span class="font-bold text-purple-600">${formatValue(totalCategoryCiro, 'totalCiro')}</span></p>
-                    <p class="text-lg"><strong class="font-semibold text-gray-600">En Çok Satan Şube:</strong> <span class="font-bold text-purple-600">${mostSellingBranch[0]} (${formatValue(mostSellingBranch[1])})</span></p>
-                `;
-                categoryDetailModal.style.display = 'flex';
-            };
-
-            // YENİ: Şube Detaylarını Gösteren Fonksiyon
-            window.showBranchDetails = (branchName) => {
-                const branchLeaderboardData = leaderboardDataGlobal.find(b => b.branch === branchName);
-                const branchRawData = allRawSalesDataGlobal.filter(s => s.branch === branchName);
-                const successfulSales = branchRawData.filter(s => s.result === 'Satışa Döndü');
-
-                const totalCiro = branchLeaderboardData ? branchLeaderboardData.totalCiro : 0;
-                const successfulSalesCount = successfulSales.length;
-                const totalCalls = branchRawData.length;
-                const salesRate = totalCalls > 0 ? (successfulSalesCount / totalCalls) * 100 : 0;
-                const averageCiro = successfulSalesCount > 0 ? totalCiro / successfulSalesCount : 0;
-
-                // --- DEĞİŞİKLİK BURADA ---
-                modalBranchName.textContent = branchName;
-
-                modalBranchDetails.innerHTML = `
-                    <div class="flex justify-between items-center py-2 border-b">
-                        <strong class="font-semibold text-gray-600">Toplam Ciro:</strong>
-                        <span class="font-bold text-lg text-purple-600">${formatValue(totalCiro, 'totalCiro')}</span>
-                    </div>
-                    <div class="flex justify-between items-center py-2 border-b">
-                        <strong class="font-semibold text-gray-600">Başarılı Satış Sayısı:</strong>
-                        <span class="font-bold text-lg text-purple-600">${formatValue(successfulSalesCount)}</span>
-                    </div>
-                    <div class="flex justify-between items-center py-2 border-b">
-                        <strong class="font-semibold text-gray-600">Toplam Arama:</strong>
-                        <span class="font-bold text-lg text-purple-600">${formatValue(totalCalls)}</span>
-                    </div>
-                    <div class="flex justify-between items-center py-2 border-b">
-                        <strong class="font-semibold text-gray-600">Satış Oranı:</strong>
-                        <span class="font-bold text-lg text-green-600">${formatValue(salesRate, 'salesRate')}</span>
-                    </div>
-                    <div class="flex justify-between items-center py-2">
-                        <strong class="font-semibold text-gray-600">Ortalama Ciro:</strong>
-                        <span class="font-bold text-lg text-purple-600">${formatValue(averageCiro, 'averageCiro')}</span>
-                    </div>
-                `;
-                branchDetailModal.style.display = 'flex';
-            };
 
             // --- OLAY DİNLEYİCİLERİ VE BAŞLATMA ---
-
             document.getElementById('applyFilter').onclick = () => {
-                const selectedPeriod = periodSelect.value;
-                if(selectedPeriod) {
-                    fetchData(selectedPeriod);
-                }
+                fetchData(periodSelect.value);
             };
-
-            branchFilterSelect.addEventListener('change', (e) => {
-                renderMostSoldCategoriesList(allRawSalesDataGlobal, e.target.value);
-            });
-
-            document.getElementById('showMonthlyTrend').onclick = () => {
-                fetchAllMonthlyData();
-            };
-
+            document.getElementById('showMonthlyTrend').onclick = fetchAllMonthlyData;
             document.getElementById('closeCategoryModal').onclick = () => categoryDetailModal.style.display = 'none';
             document.getElementById('closeMonthlyTrendModal').onclick = () => monthlyTrendModal.style.display = 'none';
-            document.getElementById('closeBranchDetailModal').onclick = () => branchDetailModal.style.display = 'none'; // Yeni
-
+            document.getElementById('closeBranchModal').onclick = () => branchDetailModal.style.display = 'none'; // YENİ
+            
             window.onclick = (event) => {
                 if (event.target == categoryDetailModal) categoryDetailModal.style.display = 'none';
                 if (event.target == monthlyTrendModal) monthlyTrendModal.style.display = 'none';
-                if (event.target == branchDetailModal) branchDetailModal.style.display = 'none'; // Yeni
+                if (event.target == branchDetailModal) branchDetailModal.style.display = 'none'; // YENİ
             };
 
             const initialize = async () => {
@@ -678,7 +678,7 @@
                 if (initialPeriod) {
                     await fetchData(initialPeriod);
                 } else {
-                    errorMessage.textContent = "Hiçbir E-Tablodan veri okunacak dönem (sayfa) bulunamadı. Lütfen E-Tablolarınızı kontrol edin.";
+                    errorMessage.textContent = "Hiçbir E-Tablodan veri okunacak dönem (sayfa) bulunamadı.";
                     errorMessage.classList.remove('hidden');
                     hideLoadingState();
                 }
