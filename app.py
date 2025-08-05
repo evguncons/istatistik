@@ -7,7 +7,7 @@ import os
 # -----------------------------------------------------------------------------
 # Streamlit sayfasının temel ayarları. Sayfa başlığı, ikonu ve yerleşim düzeni belirlenir.
 st.set_page_config(
-    page_title="Satış Liderlik Tablosu",
+    page_title="Hedef AVM Online Satış İstatistik",
     page_icon="🏆",
     layout="wide"  # HTML içeriğinin tam genişlikte görüntülenmesini sağlar.
 )
@@ -72,3 +72,4 @@ except FileNotFoundError:
     )
 except Exception as e:
     st.error(f"HTML dosyası okunurken beklenmedik bir hata oluştu: {e}")
+
