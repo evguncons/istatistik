@@ -3,106 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HedefAVM Gelişmiş Satış Analiz Paneli</title>
+    <title>Satış Liderlik Tablosu</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Google Fonts (Inter) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* Modern Dark Neon Tema */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f4f7fe;
-        }
-        body.modal-open {
-            overflow: hidden;
-        }
-        .card {
-            background-color: #ffffff;
-            border-radius: 20px;
-            padding: 24px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
-        }
-        .main-title {
-            color: #1a202c;
-        }
-        .card-title {
-            color: #4a5568;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .primary-button {
-            background-color: #d11079;
-            color: white;
-            font-weight: 600;
-            border-radius: 12px;
-            padding: 12px 24px;
-            transition: background-color 0.3s ease;
-            display: inline-flex;
-            align-items: center;
             justify-content: center;
-            gap: 8px;
+            align-items: center;
+            color: #e0e0e0;
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
-        .primary-button:hover {
-            background-color: #b90e6b;
+        .abstract-shape {
+            position: absolute;
+            opacity: 0.3;
+            filter: blur(80px);
+            z-index: 0;
         }
-        .period-select {
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            padding: 8px 12px;
-            background-color: #fff;
-            transition: border-color 0.2s, box-shadow 0.2s;
+        .shape-1 { top: 5%; left: 5%; width: 250px; height: 250px; background-color: #f72585; border-radius: 50%; animation: float 15s infinite ease-in-out; }
+        .shape-2 { bottom: 10%; right: 15%; width: 200px; height: 200px; background-color: #4361ee; border-radius: 50%; animation: float 18s infinite reverse ease-in-out; }
+        .shape-3 { top: 20%; right: 5%; width: 180px; height: 180px; background-color: #4895ef; border-radius: 40%; animation: float 17s infinite alternate-reverse ease-in-out; }
+        .shape-4 { bottom: 25%; left: 10%; width: 220px; height: 220px; background-color: #4cc9f0; border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; animation: float 20s infinite alternate ease-in-out; }
+
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+            100% { transform: translateY(0) rotate(0deg); }
         }
-        .period-select:focus {
-            outline: none;
-            border-color: #d11079;
-            box-shadow: 0 0 0 2px rgba(209, 16, 121, 0.4);
-        }
-        #loadingOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
+        .main-content-wrapper {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             width: 100%;
-            height: 100%;
-            background-color: rgba(244, 247, 254, 0.8);
+            max-width: 900px;
+            margin-top: 20px;
+            background-color: rgba(36, 36, 62, 0.9);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .leaderboard-container {
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            width: 100%;
+            text-align: center;
+            color: #ffffff;
+        }
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+            margin-top: 20px;
+        }
+        .leaderboard-table th, .leaderboard-table td {
+            padding: 15px;
+            text-align: left;
+            border-radius: 10px;
+            color: #e0e0e0;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+        }
+        .leaderboard-table th {
+            background-color: rgba(255, 255, 255, 0.2);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+        .leaderboard-table tbody tr {
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, background-color 0.3s;
+            cursor: pointer;
+        }
+        .leaderboard-table tbody tr:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        .leaderboard-table td:first-child {
+            font-weight: 700;
+            text-align: center;
+            width: 50px;
+        }
+        .logo-container {
+            margin-bottom: 20px;
+            width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
+        }
+        .logo-img {
+            max-width: 400px;
+            height: auto;
+            filter: drop-shadow(0 8px 15px rgba(0,0,0,0.5));
+        }
+        .top-3-section {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            gap: 25px;
+            margin-top: 40px;
+            margin-bottom: 50px;
+            width: 100%;
+        }
+        .top-player-card {
+            display: flex;
             flex-direction: column;
-            gap: 20px;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            width: 30%;
+            min-width: 150px;
+            min-height: 180px;
+            justify-content: center;
+            position: relative;
+            transform: translateY(0);
+            transition: transform 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
+            cursor: pointer;
         }
-        .spinner {
-            border: 5px solid rgba(0, 0, 0, 0.1);
-            border-top: 5px solid #d11079;
+        .top-player-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+        }
+        .top-player-card.rank-1 {
+            background: linear-gradient(135deg, #f72585 0%, #d90429 100%);
+            color: #fff;
+            transform: translateY(-30px);
+            box-shadow: 0 20px 40px rgba(247, 37, 133, 0.6);
+            z-index: 10;
+        }
+        .top-player-card.rank-2 {
+            background: linear-gradient(135deg, #4361ee 0%, #03045e 100%);
+            color: #fff;
+            transform: translateY(-15px);
+        }
+        .top-player-card.rank-3 {
+            background: linear-gradient(135deg, #4cc9f0 0%, #00b4d8 100%);
+            color: #fff;
+        }
+        .top-player-card .crown-icon-top {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70px;
+            height: 70px;
+            filter: drop-shadow(0 8px 15px rgba(0,0,0,0.7));
+        }
+        .top-player-card .profile-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            color: #fff;
+            border: none;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
+            padding: 0;
+            background-color: transparent;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .top-player-card .player-name, .top-player-card .player-score {
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
         }
-        .kpi-value {
-            font-size: clamp(1.7rem, 4vw, 2.5rem);
-            font-weight: 800;
-            color: #d11079;
-            margin-top: auto;
-            padding-top: 1rem;
-            overflow-wrap: break-word;
+        .top-player-card .player-name {
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+        .top-player-card .player-score {
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: #ffffff;
+        }
+        .rank-number-top {
+            position: absolute;
+            top: 8px;
+            left: 12px;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: rgba(255,255,255,0.7);
         }
         .modal {
             display: none;
@@ -112,678 +208,417 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            backdrop-filter: blur(5px);
-            padding: 1rem;
-            overflow-y: auto; /* DÜZELTME: Modalın kendisi scroll edilebilir */
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
             justify-content: center;
             align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+            backdrop-filter: blur(5px);
         }
         .modal-content {
-            background: #ffffff;
-            color: #1a202c;
-            padding: 30px;
+            background: linear-gradient(145deg, #302b63 0%, #0f0c29 100%);
+            color: #ffffff;
+            padding: 40px;
             border-radius: 20px;
             width: 90%;
-            max-width: 800px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            max-width: 550px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
             position: relative;
-            margin: auto;
-            animation: fadeIn 0.3s ease-out;
-            max-height: 90vh;
+            text-align: left;
+            animation: fadeIn 0.4s ease-out;
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .close-button {
-            color: #718096;
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            font-size: 32px;
+            color: #e0e0e0;
+            float: right;
+            font-size: 36px;
             font-weight: bold;
             cursor: pointer;
-            transition: color 0.2s;
+            transition: color 0.3s;
         }
-        .close-button:hover {
-            color: #1a202c;
+        .close-button:hover { color: #fff; }
+        .modal-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 25px;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+        }
+        .modal-detail-item {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            color: #e0e0e0;
+        }
+        .modal-detail-item strong { color: #fff; font-weight: 600; }
+        .chart-container {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 40px;
+            padding: 25px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            color: #ffffff;
+            height: 450px;
+        }
+        canvas#salesChart { max-height: 100%; }
+
+        @media (max-width: 768px) {
+            .filter-controls { flex-direction: column; gap: 10px; width: 80%; margin: 0 auto; }
+            .filter-controls select, .filter-controls button { width: 100%; }
+        }
+        @media (max-width: 640px) {
+            body { padding: 10px; }
+            .main-content-wrapper { margin-top: 0; padding: 15px; }
+            .logo-img { max-width: 250px; }
+            .top-3-section { flex-direction: column; align-items: center; gap: 15px; }
+            .top-player-card { width: 80%; transform: translateY(0) !important; }
+            .top-player-card.rank-1 .crown-icon-top { top: -25px; width: 50px; height: 50px; }
+            .leaderboard-table th, .leaderboard-table td { padding: 10px; font-size: 0.8rem; }
+            .modal-content { padding: 20px; max-width: 95%; }
+            .modal-title { font-size: 1.8rem; }
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
-    <div id="loadingOverlay">
-        <div class="spinner"></div>
-        <p class="text-gray-600 font-semibold">Veriler Yükleniyor...</p>
-    </div>
+<body>
+    <div class="abstract-shape shape-1"></div>
+    <div class="abstract-shape shape-2"></div>
+    <div class="abstract-shape shape-3"></div>
+    <div class="abstract-shape shape-4"></div>
 
-    <div class="w-full max-w-7xl mx-auto">
-        <header class="mb-8 text-center">
-            <div class="flex items-center justify-center flex-wrap gap-4">
-                <img src="https://static.ticimax.cloud/32769/uploads/editoruploads/hedef-image/logo.png" alt="Hedef AVM Logo" class="h-12 md:h-16">
-                <h1 class="main-title text-2xl md:text-4xl font-extrabold">HEDEF AVM ONLİNE SATIŞ İSTATİSTİK</h1>
-            </div>
-            <p id="currentPeriodDisplay" class="text-gray-500 mt-2">Lütfen bir dönem seçin</p>
-        </header>
+    <div class="main-content-wrapper">
+        <div class="logo-container">
+            <img src="https://www.upload.ee/image/18584579/Ads_z_tasar_m__8_.png" 
+                 onerror="this.onerror=null;this.src='https://placehold.co/400x90/E5E7EB/1F2937?text=Logo+Yuklenemedi';" 
+                 alt="Liderlik Tablosu" class="logo-img">
+        </div>
+        
+        <p class="leaderboard-date text-left text-lg font-bold mb-4" id="currentPeriodDisplay"></p>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- Filtreler Kartı -->
-            <div class="card md:col-span-2 lg:col-span-4 flex flex-col md:flex-row items-center justify-between gap-4">
-                <p class="card-title text-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V10zM15 10a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2a1 1 0 01-1-1v-4z" /></svg>
-                    Dönem Seçimi
-                </p>
-                <div class="flex items-center flex-wrap justify-end gap-4 w-full md:w-auto">
-                    <select id="periodSelect" class="period-select"></select>
-                    <button id="applyFilter" class="primary-button">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L13 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 019 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" /></svg>
-                        Getir
-                    </button>
-                </div>
+        <div class="filter-controls flex justify-center items-center flex-wrap gap-4 my-8">
+            <select id="periodSelect" class="p-2 border-gray-700 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400"></select>
+            <select id="sortSelect" class="p-2 border-gray-700 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                <option value="totalCiro" selected>Sırala: Toplam Ciro</option>
+                <option value="successfulSalesCount">Sırala: Satış Adedi</option>
+                <option value="totalCalls">Sırala: Toplam Arama</option>
+                <option value="saleRate">Sırala: Satış Oranı (%)</option>
+            </select>
+            <button id="applyFilter" class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50">
+                Getir
+            </button>
+        </div>
+
+        <div class="leaderboard-container">
+            <div class="top-3-section">
+                <div id="rank2Card" class="top-player-card rank-2"></div>
+                <div id="rank1Card" class="top-player-card rank-1"></div>
+                <div id="rank3Card" class="top-player-card rank-3"></div>
             </div>
 
-            <!-- KPI KARTLARI BÖLÜMÜ -->
-            <div class="card">
-                <h2 class="card-title">Toplam Ciro</h2>
-                <p id="totalCiroValue" class="kpi-value">0 TL</p>
-            </div>
-            <div class="card">
-                <h2 class="card-title">Başarılı Satış</h2>
-                <p id="totalSalesCount" class="kpi-value">0</p>
-            </div>
-            <div class="card">
-                <h2 class="card-title">Ort. Satış Değeri</h2>
-                <p id="averageSaleValue" class="kpi-value">0 TL</p>
-            </div>
-            <div class="card">
-                <h2 class="card-title">Ayın Şubesi</h2>
-                <p id="bestPerformingBranch" class="kpi-value text-2xl">-</p>
-            </div>
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Sıra</th>
+                        <th>Şube Adı</th>
+                        <th id="tableHeaderValue">Toplam Ciro</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody"></tbody>
+            </table>
             
-            <div id="errorMessage" class="card md:col-span-2 lg:col-span-4 text-red-500 hidden"></div>
-
-            <!-- Şubeler Ciro Karşılaştırması Kartı -->
-            <div class="card lg:col-span-2 md:col-span-2">
-                <h2 class="card-title">Şubeler Ciro Karşılaştırması</h2>
-                <div class="relative h-96 w-full mt-4">
-                    <canvas id="branchCiroChart"></canvas>
-                </div>
-            </div>
-            
-            <!-- Satış Hunisi Analizi Kartı -->
-            <div class="card lg:col-span-2 md:col-span-2">
-                <h2 class="card-title">Satış Hunisi Analizi</h2>
-                <p id="conversionRateText" class="text-sm text-gray-500 mb-2">Dönüşüm oranı hesaplanıyor...</p>
-                <div class="relative h-96 w-full mt-4">
-                    <canvas id="salesFunnelChart"></canvas>
-                </div>
+            <div id="totalCiroContainer" class="mt-8 pt-6 border-t border-gray-700 text-center">
+                <h3 class="text-xl font-bold uppercase tracking-wider text-white">Tüm Şubeler Toplam Ciro</h3>
+                <p id="totalCiroValue" class="text-4xl font-extrabold text-yellow-500 mt-2" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">0 TL</p>
             </div>
 
-            <!-- En Çok Satılan Kategoriler Kartı -->
-            <div class="card lg:col-span-4">
-                 <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
-                    <h2 class="card-title text-xl">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 8v5z" /></svg>
-                        Dönemin En Çok Satılan Kategorileri
-                    </h2>
-                     <div class="flex items-center flex-wrap justify-end gap-4 ml-auto">
-                        <div class="flex items-center gap-2">
-                            <label for="categoryBranchFilter" class="text-sm font-medium text-gray-600">Şube:</label>
-                            <select id="categoryBranchFilter" class="period-select text-sm"></select>
+            <!-- GENEL PERFORMANS ÖZETİ -->
+            <div class="stats-grid mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-gray-700 pt-6">
+                <div class="stat-item text-center bg-white bg-opacity-5 p-4 rounded-lg">
+                     <h4 class="text-gray-400 text-xs font-bold uppercase tracking-wide mb-1">Toplam Aranan</h4>
+                     <p id="globalTotalCalls" class="text-2xl font-bold text-white">0</p>
+                </div>
+                <div class="stat-item text-center bg-white bg-opacity-5 p-4 rounded-lg">
+                     <h4 class="text-gray-400 text-xs font-bold uppercase tracking-wide mb-1">Toplam Satış</h4>
+                     <p id="globalTotalSales" class="text-2xl font-bold text-green-400">0</p>
+                </div>
+                <div class="stat-item text-center bg-white bg-opacity-5 p-4 rounded-lg">
+                     <h4 class="text-gray-400 text-xs font-bold uppercase tracking-wide mb-1">Genel Dönüşüm</h4>
+                     <p id="globalSaleRate" class="text-2xl font-bold text-blue-400">%0</p>
+                </div>
+            </div>
+
+            <!-- KATEGORİ PERFORMANSI (YENİ) -->
+            <div class="mt-6 border-t border-gray-700 pt-6">
+                <h3 class="text-xl font-bold uppercase tracking-wider text-white mb-4 text-center">Ayın Kategori Liderleri</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- En Çok Satan Kategori -->
+                    <div class="bg-gradient-to-r from-purple-900 to-indigo-900 rounded-lg p-5 flex items-center justify-between shadow-lg transform hover:scale-105 transition duration-300 border border-gray-600">
+                        <div class="text-left">
+                            <h4 class="text-gray-300 text-xs font-bold uppercase mb-1">Adet Lideri</h4>
+                            <p class="text-2xl font-bold text-white" id="topCategoryName">Veri Bekleniyor...</p>
+                            <p class="text-sm text-gray-400 mt-1"><span class="text-purple-300 font-bold" id="topCategoryCount">0</span> Adet Satış</p>
                         </div>
-                         <button id="showMonthlyTrend" class="primary-button">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                            Aylık Trend
-                        </button>
+                        <div class="h-14 w-14 bg-white bg-opacity-10 rounded-full flex items-center justify-center border border-white border-opacity-20">
+                            <i class="fas fa-couch text-2xl text-purple-300"></i>
+                        </div>
+                    </div>
+
+                    <!-- Ciro Şampiyonu Kategori -->
+                    <div class="bg-gradient-to-r from-pink-900 to-rose-900 rounded-lg p-5 flex items-center justify-between shadow-lg transform hover:scale-105 transition duration-300 border border-gray-600">
+                         <div class="text-left">
+                            <h4 class="text-gray-300 text-xs font-bold uppercase mb-1">Ciro Lideri</h4>
+                            <p class="text-2xl font-bold text-white" id="topRevenueCategoryName">Veri Bekleniyor...</p>
+                            <p class="text-sm text-gray-400 mt-1"><span class="text-pink-300 font-bold" id="topRevenueCategoryAmount">0 TL</span> Ciro</p>
+                        </div>
+                         <div class="h-14 w-14 bg-white bg-opacity-10 rounded-full flex items-center justify-center border border-white border-opacity-20">
+                            <i class="fas fa-tags text-2xl text-pink-300"></i>
+                        </div>
                     </div>
                 </div>
-                <div id="mostSoldCategoriesList" class="space-y-3 mt-4">
-                    <p class="text-gray-400">Veri Yükleniyor...</p>
-                </div>
             </div>
+
+            <div id="errorMessage" class="mt-4 text-red-500 hidden"></div>
+            <div id="lastUpdated" class="mt-4 text-gray-500 text-sm"></div>
+        </div>
+        
+        <div class="chart-container">
+            <select id="chartSelect" class="p-2 border-gray-700 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 mb-4 w-full">
+                <option value="totalCiro">Grafik: Toplam Ciro</option>
+                <option value="successfulSalesCount">Grafik: Satış Adedi</option>
+                <option value="totalCalls">Grafik: Toplam Arama</option>
+                <option value="saleRate">Grafik: Satış Oranı (%)</option>
+            </select>
+            <canvas id="salesChart"></canvas>
         </div>
     </div>
 
-    <!-- Kategori Detay Modal'ı -->
-    <div id="categoryDetailModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" id="closeCategoryModal">&times;</span>
-            <h2 id="modalCategoryName" class="text-3xl font-bold mb-6"></h2>
-            <div id="modalCategoryDetails" class="space-y-3"></div>
-        </div>
-    </div>
-
-    <!-- Aylık Ciro Trendi Modal'ı -->
-    <div id="monthlyTrendModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" id="closeMonthlyTrendModal">&times;</span>
-            <h2 class="text-3xl font-bold mb-2">Aylık Ciro Trendi</h2>
-            <p id="monthlyGrowthDetail" class="text-gray-500 mb-6"></p>
-            <div class="relative h-96 w-full">
-                <canvas id="monthlyTrendChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Şube Detay Modal'ı -->
     <div id="branchDetailModal" class="modal">
         <div class="modal-content">
-            <span class="close-button" id="closeBranchModal">&times;</span>
-            <h2 id="modalBranchName" class="text-3xl font-bold mb-6"></h2>
-            <div id="modalBranchDetails" class="space-y-4"></div>
+            <span class="close-button">&times;</span>
+            <h2 id="modalBranchName" class="modal-title"></h2>
+            <div id="modalDetails"></div>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- GLOBAL DEĞİŞKENLER ---
-            let branchCiroChart, salesFunnelChart, monthlyTrendChart;
-            let allRawSalesDataGlobal = [];
-            let leaderboardDataGlobal = [];
+            let myChart; 
+            let allBranchDataGlobal = [];
             let autoRefreshInterval;
-            
-            const GOOGLE_APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxSquBU2QkyB79SkPSPHPd7BKJfiJZB3su85LosK7YBcRe4vdrrAAczgp3LOuCC76Xp7A/exec';
 
-            // --- DOM ELEMENT REFERANSLARI ---
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            const currentPeriodDisplay = document.getElementById('currentPeriodDisplay');
+            const GOOGLE_APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxC1gkEmz0jW7oC8mNhLHfc9nTHVTs6SlzRTRxVyIcLnL5pdtqtZNzctPk4nJiCDj_2nw/exec'; 
+
+            const leaderboardBody = document.getElementById('leaderboardBody');
+            const currentPeriodDisplay = document.getElementById('currentPeriodDisplay'); 
             const errorMessage = document.getElementById('errorMessage');
+            const lastUpdatedElement = document.getElementById('lastUpdated');
             const periodSelect = document.getElementById('periodSelect');
+            const sortSelect = document.getElementById('sortSelect');
+            const applyFilterButton = document.getElementById('applyFilter');
+            
             const totalCiroValueElement = document.getElementById('totalCiroValue');
-            const totalSalesCountElement = document.getElementById('totalSalesCount');
-            const averageSaleValueElement = document.getElementById('averageSaleValue');
-            const bestPerformingBranchElement = document.getElementById('bestPerformingBranch');
-            const mostSoldCategoriesListElement = document.getElementById('mostSoldCategoriesList');
-            const conversionRateText = document.getElementById('conversionRateText');
-            const categoryDetailModal = document.getElementById('categoryDetailModal');
-            const monthlyTrendModal = document.getElementById('monthlyTrendModal');
-            const modalCategoryName = document.getElementById('modalCategoryName');
-            const modalCategoryDetails = document.getElementById('modalCategoryDetails');
-            const monthlyGrowthDetailElement = document.getElementById('monthlyGrowthDetail');
-            const branchDetailModal = document.getElementById('branchDetailModal');
+            const globalTotalCallsElement = document.getElementById('globalTotalCalls');
+            const globalTotalSalesElement = document.getElementById('globalTotalSales');
+            const globalSaleRateElement = document.getElementById('globalSaleRate');
+            
+            const topCategoryNameEl = document.getElementById('topCategoryName');
+            const topCategoryCountEl = document.getElementById('topCategoryCount');
+            const topRevenueCategoryNameEl = document.getElementById('topRevenueCategoryName');
+            const topRevenueCategoryAmountEl = document.getElementById('topRevenueCategoryAmount');
+
+            const tableHeaderValue = document.getElementById('tableHeaderValue');
             const modalBranchName = document.getElementById('modalBranchName');
-            const modalBranchDetails = document.getElementById('modalBranchDetails');
-            const categoryBranchFilter = document.getElementById('categoryBranchFilter');
+            const modalDetails = document.getElementById('modalDetails');
+            const closeButton = document.querySelector('.close-button');
+            const chartSelect = document.getElementById('chartSelect');
 
-            // --- TEMEL FONKSİYONLAR ---
-            const setLoadingState = (message = "Veriler Yükleniyor...") => {
-                errorMessage.classList.add('hidden');
-                if (branchCiroChart) branchCiroChart.destroy(); 
-                if (salesFunnelChart) salesFunnelChart.destroy();
-                if (monthlyTrendChart) monthlyTrendChart.destroy();
-                
-                totalCiroValueElement.textContent = '...';
-                totalSalesCountElement.textContent = '...';
-                averageSaleValueElement.textContent = '...';
-                bestPerformingBranchElement.textContent = '...';
-                mostSoldCategoriesListElement.innerHTML = `<p class="text-gray-400">Yükleniyor...</p>`;
-                conversionRateText.textContent = 'Dönüşüm oranı hesaplanıyor...';
-
-                loadingOverlay.querySelector('p').textContent = message;
-                loadingOverlay.style.display = 'flex';
+            const startAutoRefresh = () => {
+                if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+                autoRefreshInterval = setInterval(() => fetchLeaderboardData(true), 30000);
             };
 
-            const hideLoadingState = () => loadingOverlay.style.display = 'none';
+            const formatValue = (value, criteria) => {
+                value = value === undefined || value === null || isNaN(value) ? 0 : value;
+                if (criteria === 'totalCiro' || criteria === 'averageCiro') {
+                    return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+                }
+                if (criteria === 'saleRate') return `%${parseFloat(value).toFixed(2)}`;
+                return `${value} Adet`;
+            };
+
+            const createPlayerCardHTML = (rank, branchData, criteria) => {
+                if (!branchData || branchData.branch === 'Yükleniyor...') {
+                    return `<div class="flex items-center justify-center h-full"><svg class="animate-spin h-8 w-8 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>`;
+                }
+                const score = formatValue(branchData[criteria], criteria);
+                const crownHTML = rank === 1 ? `<img src="https://www.upload.ee/image/18258333/0_12e6cc_138b775d_orig.png" alt="Kral Tacı" class="crown-icon-top">` : '';
+                return `${crownHTML}<span class="rank-number-top">${rank}</span><i class="fas fa-user-circle profile-icon"></i><div class="player-name">${branchData.branch}</div><div class="player-score">${score}</div>`;
+            };
+
+            const updateDisplay = (statsData) => {
+                const sortCriteria = sortSelect.value;
+                const sortedData = [...allBranchDataGlobal].sort((a, b) => (b[sortCriteria] || 0) - (a[sortCriteria] || 0));
+                
+                const headerOption = sortSelect.querySelector(`option[value="${sortCriteria}"]`);
+                tableHeaderValue.textContent = headerOption ? headerOption.textContent.replace('Sırala: ', '') : 'Değer';
+                
+                const ranks = [document.getElementById('rank1Card'), document.getElementById('rank2Card'), document.getElementById('rank3Card')];
+                [0, 1, 2].forEach(i => {
+                    const data = sortedData[i] || null;
+                    ranks[i].innerHTML = createPlayerCardHTML(i + 1, data, sortCriteria);
+                    if (data) ranks[i].onclick = () => showBranchDetails(data);
+                });
+                
+                leaderboardBody.innerHTML = '';
+                if (sortedData.length === 0 && !errorMessage.textContent) {
+                    leaderboardBody.innerHTML = `<tr><td colspan="3" class="text-center py-6 text-gray-400">Bu dönem için veri bulunamadı.</td></tr>`;
+                } else {
+                    sortedData.forEach((item, index) => {
+                        const row = leaderboardBody.insertRow();
+                        row.dataset.branch = item.branch;
+                        row.insertCell(0).textContent = index + 1;
+                        row.insertCell(1).textContent = item.branch;
+                        row.insertCell(2).textContent = formatValue(item[sortCriteria], sortCriteria);
+                        row.onclick = () => showBranchDetails(item);
+                    });
+                }
+                
+                const totalCiro = allBranchDataGlobal.reduce((sum, item) => sum + (item.totalCiro || 0), 0);
+                const totalCalls = allBranchDataGlobal.reduce((sum, item) => sum + (item.totalCalls || 0), 0);
+                const totalSales = allBranchDataGlobal.reduce((sum, item) => sum + (item.successfulSalesCount || 0), 0);
+                
+                totalCiroValueElement.textContent = formatValue(totalCiro, 'totalCiro');
+                globalTotalCallsElement.textContent = `${totalCalls}`;
+                globalTotalSalesElement.textContent = `${totalSales}`;
+                globalSaleRateElement.textContent = totalCalls > 0 ? `%${((totalSales / totalCalls) * 100).toFixed(2)}` : '%0';
+
+                // --- KATEGORİ VERİLERİNİ GÜNCELLEME (Backend'den gelen veri ile) ---
+                if (statsData) {
+                    if (statsData.topCategory) {
+                        topCategoryNameEl.textContent = statsData.topCategory.name || "Veri Yok";
+                        topCategoryCountEl.textContent = statsData.topCategory.count || "0";
+                    }
+                    if (statsData.topRevenueCategory) {
+                        topRevenueCategoryNameEl.textContent = statsData.topRevenueCategory.name || "Veri Yok";
+                        topRevenueCategoryAmountEl.textContent = formatValue(statsData.topRevenueCategory.amount, 'totalCiro');
+                    }
+                } else {
+                    // Veri henüz yoksa veya eski backend kullanılıyorsa
+                    topCategoryNameEl.textContent = "-";
+                    topCategoryCountEl.textContent = "0";
+                    topRevenueCategoryNameEl.textContent = "-";
+                    topRevenueCategoryAmountEl.textContent = "0 TL";
+                }
+                
+                renderChart(sortedData, chartSelect.value);
+                lastUpdatedElement.textContent = `Son Güncelleme: ${new Date().toLocaleString('tr-TR')}`;
+            };
             
-            const formatCurrency = (value) => (value || 0).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
-            
-            // --- VERİ ÇEKME VE İŞLEME ---
+            const setLoadingState = (message = "Veriler Yükleniyor...") => {
+                 errorMessage.classList.add('hidden');
+                 errorMessage.textContent = '';
+                 leaderboardBody.innerHTML = `<tr><td colspan="3" class="text-center py-8"><div class="flex justify-center items-center"><svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>${message}</span></div></td></tr>`;
+                 ['rank1Card', 'rank2Card', 'rank3Card'].forEach((id, i) => document.getElementById(id).innerHTML = createPlayerCardHTML(i + 1, { branch: 'Yükleniyor...' }));
+                 if (myChart) myChart.destroy();
+                 totalCiroValueElement.textContent = 'Hesaplanıyor...';
+                 globalTotalCallsElement.textContent = '...';
+                 globalTotalSalesElement.textContent = '...';
+                 globalSaleRateElement.textContent = '...';
+            };
+
             async function fetchAvailablePeriods() {
                 try {
                     const response = await fetch(`${GOOGLE_APPS_SCRIPT_WEB_APP_URL}?action=getAvailablePeriods&t=${new Date().getTime()}`);
-                    if (!response.ok) throw new Error(`Sunucu hatası: ${response.status}`);
-                    const data = await response.json();
-                    if (data.error) throw new Error(data.error);
-
-                    const periods = data.periods || [];
+                    const periods = await response.json();
+                    if (periods.error) throw new Error(periods.error);
+                    
+                    const currentSelected = periodSelect.value;
+                    periodSelect.innerHTML = '';
                     const monthOrder = ['OCAK', 'ŞUBAT', 'MART', 'NİSAN', 'MAYIS', 'HAZİRAN', 'TEMMUZ', 'AĞUSTOS', 'EYLÜL', 'EKİM', 'KASIM', 'ARALIK'];
                     periods.sort((a, b) => {
                         const [monthA, yearA] = a.split(' ');
                         const [monthB, yearB] = b.split(' ');
                         if (parseInt(yearA) !== parseInt(yearB)) return parseInt(yearB) - parseInt(yearA);
-                        return monthOrder.indexOf(monthB.toUpperCase()) - monthOrder.indexOf(monthA.toUpperCase());
+                        return monthOrder.indexOf(monthB) - monthOrder.indexOf(monthA);
                     }).forEach(period => periodSelect.add(new Option(period, period)));
                     
-                    return periodSelect.value;
-                } catch (error) {
-                    errorMessage.textContent = `Dönemler yüklenemedi: ${error.message}.`;
-                    errorMessage.classList.remove('hidden');
-                    return null;
-                }
+                    if ([...periodSelect.options].some(opt => opt.value === currentSelected)) periodSelect.value = currentSelected;
+                } catch (error) { console.error(`Dönemler yüklenemedi: ${error.message}`); }
             }
-            
-            async function fetchData(selectedPeriod, isSilentRefresh = false) {
-                if (!selectedPeriod) {
-                    errorMessage.textContent = "Lütfen bir dönem seçin.";
-                    errorMessage.classList.remove('hidden');
-                    hideLoadingState();
-                    return;
-                }
-                
-                if (!isSilentRefresh) {
-                    setLoadingState(`'${selectedPeriod}' verileri yükleniyor...`);
-                }
-                currentPeriodDisplay.textContent = `${selectedPeriod} Dönemi Analizi`;
 
+            async function fetchLeaderboardData(isSilentRefresh = false) {
+                const selectedPeriod = periodSelect.value;
+                if (!selectedPeriod) return;
+                if (!isSilentRefresh) setLoadingState(`'${selectedPeriod}' verileri yükleniyor...`);
+                currentPeriodDisplay.textContent = `Dönem: ${selectedPeriod}`;
                 try {
                     const url = `${GOOGLE_APPS_SCRIPT_WEB_APP_URL}?action=getLeaderboard&sheetName=${encodeURIComponent(selectedPeriod)}&t=${new Date().getTime()}`;
                     const response = await fetch(url);
-                    if (!response.ok) throw new Error(`Sunucu hatası: ${response.status}`);
                     const data = await response.json();
                     if(data.error) throw new Error(data.error);
 
-                    allRawSalesDataGlobal = data.rawSales || [];
-                    leaderboardDataGlobal = data.leaderboard || [];
+                    allBranchDataGlobal = data.leaderboard;
                     
-                    renderKPIs(allRawSalesDataGlobal, leaderboardDataGlobal);
-                    renderBranchCiroChart(leaderboardDataGlobal);
-                    renderSalesFunnelChart(allRawSalesDataGlobal);
+                    // --- Backend'den gelen yeni 'stats' objesini gönder ---
+                    updateDisplay(data.stats);
                     
-                    const previousFilterValue = categoryBranchFilter.value;
-                    populateBranchFilter(leaderboardDataGlobal);
-                    
-                    if (isSilentRefresh) {
-                        categoryBranchFilter.value = previousFilterValue;
-                    } else {
-                        categoryBranchFilter.value = 'all';
-                    }
-                    
-                    renderMostSoldCategoriesList(categoryBranchFilter.value);
-
-                    if (!isSilentRefresh) {
-                        hideLoadingState();
-                    }
+                    if (!isSilentRefresh) startAutoRefresh();
                 } catch (error) {
-                    errorMessage.textContent = `Veriler yüklenemedi: ${error.message}.`;
+                    errorMessage.textContent = `Veriler yüklenemedi: ${error.message}`;
                     errorMessage.classList.remove('hidden');
-                    if (!isSilentRefresh) {
-                        hideLoadingState();
-                    }
-                } finally {
-                    // YENİ: Yükseklik gönderme fonksiyonu
-                    sendHeightToParent();
                 }
             }
+            
+            function renderChart(data, criteria) {
+                const ctx = document.getElementById('salesChart').getContext('2d');
+                if (myChart) myChart.destroy();
+                const chartLabel = chartSelect.options[chartSelect.selectedIndex].text.replace('Grafik: ', '');
+                const color = criteria === 'saleRate' ? '#f72585' : '#4361ee';
+                const yAxisTitle = criteria === 'totalCiro' ? 'Ciro (TL)' : (criteria === 'saleRate' ? 'Oran (%)' : 'Adet');
 
-            // --- RENDER FONKSİYONLARI ---
-            function renderKPIs(rawSalesData, leaderboardData) {
-                const successfulSales = rawSalesData.filter(sale => sale.result === 'Satışa Döndü');
-                const totalSalesCount = successfulSales.length;
-                const totalCiro = leaderboardData.reduce((sum, branch) => sum + branch.totalCiro, 0);
-                const averageSaleValue = totalSalesCount > 0 ? totalCiro / totalSalesCount : 0;
-                
-                const sortedBranches = [...leaderboardData].sort((a, b) => b.totalCiro - a.totalCiro);
-                const bestBranch = sortedBranches.length > 0 ? sortedBranches[0].branch : "-";
-
-                totalCiroValueElement.textContent = formatCurrency(totalCiro);
-                totalSalesCountElement.textContent = totalSalesCount;
-                averageSaleValueElement.textContent = formatCurrency(averageSaleValue);
-                bestPerformingBranchElement.textContent = bestBranch;
-            }
-
-            function renderBranchCiroChart(leaderboardData) {
-                const ctx = document.getElementById('branchCiroChart').getContext('2d');
-                if (branchCiroChart) branchCiroChart.destroy();
-
-                const sortedData = [...leaderboardData].sort((a, b) => b.totalCiro - a.totalCiro);
-                
-                const chartOnClick = (event) => {
-                    const points = branchCiroChart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
-                    if (points.length) {
-                        const firstPoint = points[0];
-                        const label = branchCiroChart.data.labels[firstPoint.index];
-                        showBranchDetails(label);
-                    }
-                };
-
-                branchCiroChart = new Chart(ctx, {
+                myChart = new Chart(ctx, {
                     type: 'bar',
-                    data: {
-                        labels: sortedData.map(item => item.branch),
-                        datasets: [{
-                            label: 'Toplam Ciro',
-                            data: sortedData.map(item => item.totalCiro),
-                            backgroundColor: 'rgba(209, 16, 121, 0.8)',
-                            borderRadius: 8,
-                        }]
+                    data: { 
+                        labels: data.map(item => item.branch), 
+                        datasets: [{ label: chartLabel, data: data.map(item => item[criteria] || 0), backgroundColor: color, borderColor: color, borderWidth: 1 }] 
                     },
-                    options: {
-                        onClick: chartOnClick,
-                        indexAxis: 'y', 
-                        responsive: true, 
-                        maintainAspectRatio: false,
-                        plugins: { 
-                            legend: { display: false },
-                            tooltip: {
-                                callbacks: {
-                                    label: (context) => `Ciro: ${formatCurrency(context.parsed.x)}`
-                                }
-                            }
-                        },
-                        scales: {
-                             x: { ticks: { callback: (value) => (value/1000) + 'k ₺' } },
-                        }
+                    options: { 
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, title: { display: true, text: `Şube ${chartLabel} Karşılaştırması`, color: '#e0e0e0' } },
+                        scales: { x: { ticks: { color: '#e0e0e0' }, grid: { color: 'rgba(255,255,255,0.1)' } }, y: { beginAtZero: true, title: { display: true, text: yAxisTitle, color: '#e0e0e0' }, ticks: { color: '#e0e0e0' }, grid: { color: 'rgba(255,255,255,0.1)' } } }
                     }
                 });
             }
 
-            function renderSalesFunnelChart(rawSalesData) {
-                const ctx = document.getElementById('salesFunnelChart').getContext('2d');
-                if (salesFunnelChart) salesFunnelChart.destroy();
-
-                const allCalledLeads = rawSalesData.filter(sale => {
-                    return sale.durum && String(sale.durum).toLowerCase().trim() === 'arandı';
-                });
-                const totalCalls = allCalledLeads.length;
-                
-                const successfulSales = allCalledLeads.filter(sale => sale.result === 'Satışa Döndü').length;
-                const conversionRate = totalCalls > 0 ? (successfulSales / totalCalls) * 100 : 0;
-
-                conversionRateText.innerHTML = `Toplam <strong>${totalCalls}</strong> aramanın <strong>${successfulSales}</strong> tanesi satışa döndü. <br> Dönüşüm Oranı: <strong style="color: #d11079;">${conversionRate.toFixed(2)}%</strong>`;
-
-                salesFunnelChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Başarılı Satış', 'Toplam Arama'],
-                        datasets: [{
-                            label: 'Adet',
-                            data: [successfulSales, totalCalls],
-                            backgroundColor: ['#4ade80', '#60a5fa'],
-                            borderRadius: 8,
-                            barPercentage: 0.5
-                        }]
-                    },
-                    options: {
-                        indexAxis: 'y',
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            x: { beginAtZero: true, grid: { display: false } },
-                            y: { grid: { display: false } }
-                        }
-                    }
-                });
-            }
-            
-            function populateBranchFilter(leaderboardData) {
-                categoryBranchFilter.innerHTML = '';
-                const allBranchesOption = new Option('Tüm Şubeler', 'all');
-                categoryBranchFilter.add(allBranchesOption);
-
-                leaderboardData.forEach(branchData => {
-                    const option = new Option(branchData.branch, branchData.branch);
-                    categoryBranchFilter.add(option);
-                });
-            }
-
-            function renderMostSoldCategoriesList(selectedBranch = 'all') {
-                let dataToProcess = allRawSalesDataGlobal;
-
-                if (selectedBranch !== 'all') {
-                    dataToProcess = allRawSalesDataGlobal.filter(sale => sale.branch === selectedBranch);
-                }
-
-                const categorySalesDetails = {};
-                dataToProcess.forEach(sale => {
-                    const categoryName = String(sale.category || '').trim();
-                    
-                    if (sale.result === 'Satışa Döndü' && categoryName.length > 0) {
-                        if (!categorySalesDetails[categoryName]) {
-                            categorySalesDetails[categoryName] = { count: 0 };
-                        }
-                        categorySalesDetails[categoryName].count++;
-                    }
-                });
-
-                const sortedCategories = Object.entries(categorySalesDetails)
-                    .map(([category, details]) => ({ category, ...details }))
-                    .sort((a, b) => b.count - a.count);
-
-                let listHtml = '';
-                if (sortedCategories.length > 0) {
-                    sortedCategories.forEach(item => {
-                        listHtml += `<div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer" onclick="showCategoryDetails('${item.category.replace(/'/g, "\\'")}')">
-                                        <span class="font-semibold text-gray-700">${item.category}</span>
-                                        <span class="text-sm font-bold text-[#d11079] bg-[#d11079]/10 px-2 py-1 rounded-md">${item.count} Satış</span>
-                                     </div>`;
-                    });
-                } else {
-                    listHtml = `<p class="text-gray-400">Bu filtre için satışa dönen kategori verisi bulunamadı.</p>`;
-                }
-                
-                mostSoldCategoriesListElement.innerHTML = listHtml;
-            }
-
-             window.showCategoryDetails = (categoryName) => {
-                openModal(categoryDetailModal);
-                const categorySales = allRawSalesDataGlobal.filter(sale => sale.result === 'Satışa Döndü' && sale.category === categoryName);
-                
-                const totalSalesCount = categorySales.length;
-                const totalCategoryCiro = categorySales.reduce((sum, sale) => sum + sale.tutar, 0);
-
-                const branchSales = categorySales.reduce((acc, sale) => {
-                    const branchName = sale.branch || 'Bilinmeyen';
-                    acc[branchName] = (acc[branchName] || 0) + 1;
-                    return acc;
-                }, {});
-
-                const mostSellingBranch = Object.entries(branchSales).sort((a,b) => b[1] - a[1])[0] || ['Veri Yok', 0];
-
-                modalCategoryName.textContent = categoryName;
-                modalCategoryDetails.innerHTML = `
-                    <p class="text-lg"><strong class="font-semibold text-gray-600">Toplam Satış Adedi:</strong> <span class="font-bold" style="color: #d11079;">${totalSalesCount} Adet</span></p>
-                    <p class="text-lg"><strong class="font-semibold text-gray-600">Toplam Ciro:</strong> <span class="font-bold" style="color: #d11079;">${formatCurrency(totalCategoryCiro)}</span></p>
-                    <p class="text-lg"><strong class="font-semibold text-gray-600">En Çok Satan Şube:</strong> <span class="font-bold" style="color: #d11079;">${mostSellingBranch[0]} (${mostSellingBranch[1]} Adet)</span></p>
+            function showBranchDetails(branchData) {
+                modalBranchName.textContent = branchData.branch || 'Bilinmiyor';
+                modalDetails.innerHTML = `
+                    <p class="modal-detail-item"><strong>Toplam Ciro:</strong> <span>${formatValue(branchData.totalCiro, 'totalCiro')}</span></p>
+                    <p class="modal-detail-item"><strong>Başarılı Satış Sayısı:</strong> <span>${formatValue(branchData.successfulSalesCount, 'successfulSalesCount')}</span></p>
+                    <p class="modal-detail-item"><strong>Toplam Arama:</strong> <span>${formatValue(branchData.totalCalls, 'totalCalls')}</span></p>
+                    <p class="modal-detail-item"><strong>Satış Oranı:</strong> <span>${formatValue(branchData.saleRate, 'saleRate')}</span></p>
+                    <p class="modal-detail-item"><strong>Ortalama Ciro:</strong> <span>${formatValue(branchData.averageCiro, 'averageCiro')}</span></p>
                 `;
-            };
-            
-            window.showBranchDetails = (branchName) => {
-                openModal(branchDetailModal);
-                const branchInfo = leaderboardDataGlobal.find(b => b.branch === branchName);
-                const totalCiro = branchInfo ? branchInfo.totalCiro : 0;
-
-                const branchRawData = allRawSalesDataGlobal.filter(sale => sale.branch === branchName);
-                
-                const totalCalls = branchRawData.filter(sale => 
-                    sale.durum && String(sale.durum).toLowerCase().trim() === 'arandı'
-                ).length;
-
-                const successfulSales = branchRawData.filter(sale => sale.result === 'Satışa Döndü').length;
-                
-                const conversionRate = totalCalls > 0 ? (successfulSales / totalCalls) * 100 : 0;
-
-                modalBranchName.textContent = `${branchName} Performansı`;
-                modalBranchDetails.innerHTML = `
-                    <div class="grid grid-cols-2 gap-4 text-lg">
-                        <p class="font-semibold text-gray-600">Toplam Ciro:</p>
-                        <p class="font-bold text-right" style="color: #d11079;">${formatCurrency(totalCiro)}</p>
-                        
-                        <p class="font-semibold text-gray-600">Toplam Arama:</p>
-                        <p class="font-bold text-blue-600 text-right">${totalCalls} adet</p>
-
-                        <p class="font-semibold text-gray-600">Başarılı Satış:</p>
-                        <p class="font-bold text-green-600 text-right">${successfulSales} adet</p>
-
-                        <p class="font-semibold text-gray-600">Dönüşüm Oranı:</p>
-                        <p class="font-bold text-yellow-500 text-right">${conversionRate.toFixed(2)}%</p>
-                    </div>
-                `;
-            };
-
-            function renderMonthlyTrendChart(data) {
-                const ctx = document.getElementById('monthlyTrendChart').getContext('2d');
-                if (monthlyTrendChart) monthlyTrendChart.destroy();
-
-                const labels = data.map(item => item.period);
-                const ciroData = data.map(item => item.totalCiro);
-
-                monthlyTrendChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Toplam Ciro',
-                            data: ciroData,
-                            backgroundColor: 'rgba(209, 16, 121, 0.1)',
-                            borderColor: '#d11079',
-                            borderWidth: 3,
-                            tension: 0.4,
-                            fill: true,
-                            pointBackgroundColor: '#ffffff',
-                            pointBorderColor: '#d11079',
-                            pointRadius: 5,
-                            pointHoverRadius: 7,
-                            pointHoverBorderWidth: 3
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                mode: 'index',
-                                intersect: false,
-                                callbacks: {
-                                    label: (context) => {
-                                        const currentIndex = context.dataIndex;
-                                        const currentCiro = context.parsed.y;
-                                        let tooltipText = [`Ciro: ${formatCurrency(currentCiro)}`];
-
-                                        if (currentIndex > 0) {
-                                            const prevCiro = data[currentIndex - 1].totalCiro;
-                                            if (prevCiro > 0) {
-                                                const growthRate = ((currentCiro - prevCiro) / prevCiro) * 100;
-                                                const growthSign = growthRate >= 0 ? '▲' : '▼';
-                                                tooltipText.push(`${growthSign} ${Math.abs(growthRate).toFixed(2)}% Önceki Aya Göre`);
-                                            }
-                                        }
-                                        return tooltipText;
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: { ticks: { color: '#4a5568' }, grid: { color: '#e2e8f0' } },
-                            y: {
-                                beginAtZero: true,
-                                ticks: { color: '#4a5568', callback: (value) => (value/1000) + 'k ₺' },
-                                grid: { color: '#e2e8f0' }
-                            }
-                        }
-                    }
-                });
-
-                if (data.length > 0) {
-                    const lastMonthIndex = data.length - 1;
-                    const lastMonthData = data[lastMonthIndex];
-                    let detailText = `${lastMonthData.period}: ${formatCurrency(lastMonthData.totalCiro)}`;
-                    
-                    if (lastMonthIndex > 0) {
-                        const prevCiro = data[lastMonthIndex - 1].totalCiro;
-                        if (prevCiro > 0) {
-                            const growthRate = ((lastMonthData.totalCiro - prevCiro) / prevCiro) * 100;
-                            const growthSign = growthRate >= 0 ? '▲' : '▼';
-                            const growthColor = growthRate >= 0 ? 'text-green-500' : 'text-red-500';
-                            detailText += ` <span class="${growthColor}">(${growthSign} ${Math.abs(growthRate).toFixed(2)}%)</span>`;
-                        }
-                    }
-                    monthlyGrowthDetailElement.innerHTML = detailText;
-                } else {
-                    monthlyGrowthDetailElement.innerHTML = `<span class="text-gray-400">Veri Yok</span>`;
-                }
+                document.getElementById('branchDetailModal').style.display = 'flex';
             }
-
-            async function fetchAllMonthlyData() {
-                openModal(monthlyTrendModal);
-                monthlyGrowthDetailElement.innerHTML = `<span class="text-gray-400">Aylık trend verileri yükleniyor...</span>`;
-                
-                try {
-                    const url = `${GOOGLE_APPS_SCRIPT_WEB_APP_URL}?action=getMonthlyTrendData&t=${new Date().getTime()}`;
-                    const response = await fetch(url);
-                    if (!response.ok) throw new Error(`Sunucu hatası: ${response.status}`);
-                    const data = await response.json();
-                    if (data.error) throw new Error(data.error);
-
-                    const monthOrder = ['OCAK', 'ŞUBAT', 'MART', 'NİSAN', 'MAYIS', 'HAZİRAN', 'TEMMUZ', 'AĞUSTOS', 'EYLÜL', 'EKİM', 'KASIM', 'ARALIK'];
-                    data.sort((a,b) => {
-                        const [monthA, yearA] = a.period.split(' ');
-                        const [monthB, yearB] = b.period.split(' ');
-                        if (parseInt(yearA) !== parseInt(yearB)) return parseInt(yearB) - parseInt(yearA);
-                        return monthOrder.indexOf(monthA.toUpperCase()) - monthOrder.indexOf(monthB.toUpperCase());
-                    });
-                    
-                    renderMonthlyTrendChart(data);
-
-                } catch (error) {
-                     monthlyGrowthDetailElement.innerHTML = `<span class="text-red-500">Trend verileri yüklenemedi: ${error.message}</span>`;
-                }
-            }
-
-            // --- YENİ MODAL KONTROL FONKSİYONLARI ---
-            function openModal(modalElement) {
-                document.body.classList.add('modal-open');
-                modalElement.style.display = 'flex';
-            }
-
-            function closeModal(modalElement) {
-                modalElement.style.display = 'none';
-                document.body.classList.remove('modal-open');
-            }
-
-            // YENİ: Panel yüksekliğini Streamlit'e gönderme fonksiyonu
-            function sendHeightToParent() {
-                // Küçük bir gecikme ile yüksekliğin tam olarak hesaplanmasını bekle
-                setTimeout(() => {
-                    const height = document.body.scrollHeight;
-                    // '*' tüm hedeflere izin verir, güvenlik için Streamlit alan adınızı kullanabilirsiniz.
-                    window.parent.postMessage({ type: 'setHeight', height: height }, '*');
-                }, 250);
-            }
-
-            // --- OLAY DİNLEYİCİLERİ VE BAŞLATMA ---
-            document.getElementById('applyFilter').onclick = () => {
-                fetchData(periodSelect.value);
-            };
-            document.getElementById('showMonthlyTrend').onclick = fetchAllMonthlyData;
             
-            document.getElementById('closeCategoryModal').onclick = () => closeModal(categoryDetailModal);
-            document.getElementById('closeMonthlyTrendModal').onclick = () => closeModal(monthlyTrendModal);
-            document.getElementById('closeBranchModal').onclick = () => closeModal(branchDetailModal);
-            
-            categoryBranchFilter.addEventListener('change', () => {
-                renderMostSoldCategoriesList(categoryBranchFilter.value);
-            });
-            
-            window.onclick = (event) => {
-                if (event.target == categoryDetailModal) closeModal(categoryDetailModal);
-                if (event.target == monthlyTrendModal) closeModal(monthlyTrendModal);
-                if (event.target == branchDetailModal) closeModal(branchDetailModal);
-            };
+            closeButton.onclick = () => document.getElementById('branchDetailModal').style.display = 'none';
+            window.onclick = (event) => { if (event.target == document.getElementById('branchDetailModal')) document.getElementById('branchDetailModal').style.display = 'none'; };
+            applyFilterButton.onclick = () => fetchLeaderboardData();
+            sortSelect.onchange = () => { if (allBranchDataGlobal.length > 0) updateDisplay(); };
+            chartSelect.onchange = () => { if (allBranchDataGlobal.length > 0) renderChart(allBranchDataGlobal, chartSelect.value); };
 
-            const initialize = async () => {
-                setLoadingState("Dönemler yükleniyor...");
-                const initialPeriod = await fetchAvailablePeriods();
-                if (initialPeriod) {
-                    await fetchData(initialPeriod);
-                } else {
-                    errorMessage.textContent = "Hiçbir E-Tablodan veri okunacak dönem (sayfa) bulunamadı.";
-                    errorMessage.classList.remove('hidden');
-                    hideLoadingState();
-                }
-                
-                if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-                autoRefreshInterval = setInterval(() => {
-                    console.log("Veriler otomatik olarak yenileniyor...");
-                    fetchData(periodSelect.value, true);
-                }, 60000);
-
-                // YENİ: Pencere boyutu değiştiğinde yüksekliği tekrar gönder
-                window.addEventListener('resize', sendHeightToParent);
-            };
-            
-            initialize();
+            const monthOrder = ['OCAK', 'ŞUBAT', 'MART', 'NİSAN', 'MAYIS', 'HAZİRAN', 'TEMMUZ', 'AĞUSTOS', 'EYLÜL', 'EKİM', 'KASIM', 'ARALIK'];
+            const now = new Date();
+            const currentPeriodName = `${monthOrder[now.getMonth()]} ${now.getFullYear()}`;
+            periodSelect.innerHTML = `<option value="${currentPeriodName}">${currentPeriodName}</option>`;
+            periodSelect.value = currentPeriodName;
+            fetchLeaderboardData(); 
+            fetchAvailablePeriods();
         });
     </script>
 </body>
